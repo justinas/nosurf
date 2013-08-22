@@ -20,3 +20,10 @@ _cgo_export.*
 _testmain.go
 
 *.exe
+
+# Vim stuff
+*.s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
