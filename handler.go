@@ -82,6 +82,8 @@ func (h *CSRFHandler) SetFailureHandler(handler http.Handler) {
 	h.failureHandler = handler
 }
 
+// Sets the base cookie to use when building a CSRF token cookie
+// This way you can specify the Domain, Path, HttpOnly, Secure, etc.
 func (h *CSRFHandler) SetBaseCookie(cookie http.Cookie) {
 	h.baseCookie = cookie
 }
