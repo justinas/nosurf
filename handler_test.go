@@ -34,4 +34,10 @@ func TestRegenerateTokenWorks(t *testing.T) {
 		t.Errorf("Expected header to contain %v, it doesn't. The header is %v.",
 			expected_part, header)
 	}
+
+	tokenInContext := Token(req)
+	if tokenInContext != token {
+		t.Errorf("RegenerateToken didn't set the token in the context map!"+
+			" Expected %v, got %v", token, tokenInContext)
+	}
 }
