@@ -31,7 +31,7 @@ type CSRFHandler struct {
 	exemptRegexps []*regexp.Regexp
 
 	// All of those will be matched against Request.URL.Path,
-	// So they should begin with a leading slash
+	// So they should take the leading slash into account
 }
 
 func defaultFailureHandler(w http.ResponseWriter, r *http.Request) {
