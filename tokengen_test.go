@@ -26,7 +26,6 @@ func TestGeneratesAValidToken(t *testing.T) {
 	}
 
 	l = len(hash)
-
 	if l != sha256.Size {
 		t.Errorf("Bad decoded token length: expected %d, got %d", l, sha256.Size)
 	}
