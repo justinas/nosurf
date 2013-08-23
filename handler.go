@@ -8,8 +8,11 @@ import (
 )
 
 const (
-	CookieName  = "csrf_token"
-	HeaderName  = "X-CSRF-Token"
+	// the name of CSRF cookie
+	CookieName = "csrf_token"
+	// the name of CSRF header
+	HeaderName = "X-CSRF-Token"
+	// the HTTP status code for the default failure handler
 	FailureCode = 400
 )
 
@@ -35,7 +38,7 @@ func defaultFailureHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(FailureCode)
 }
 
-// Constructs a new `CSRFHandler` that calls
+// Constructs a new CSRFHandler that calls
 // the specified handler if the CSRF check succeeds.
 func New(handler http.Handler) *CSRFHandler {
 	csrf := &CSRFHandler{successHandler: handler,
@@ -49,7 +52,7 @@ func New(handler http.Handler) *CSRFHandler {
 }
 
 // Sets the handler to call in case the CSRF check
-// fails. By default it's `defaultFailureHandler`.
+// fails. By default it's defaultFailureHandler.
 func (h *CSRFHandler) SetFailureHandler(handler http.Handler) {
 	h.failureHandler = handler
 }
