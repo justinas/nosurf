@@ -116,7 +116,12 @@ func (h *CSRFHandler) handleFailure(w http.ResponseWriter, r *http.Request) {
 // Generates a new token, sets it on the given request and returns it
 func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) string {
 	token := generateToken()
+	h.setTokenCookie(w, r, token)
 
+	return token
+}
+
+func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, token string) {
 	cookie := h.baseCookie
 	cookie.Name = CookieName
 	cookie.Value = token
@@ -124,8 +129,6 @@ func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) st
 	http.SetCookie(w, &cookie)
 
 	ctxSetToken(r, token)
-
-	return token
 }
 
 // Sets the handler to call in case the CSRF check

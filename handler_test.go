@@ -20,12 +20,33 @@ func TestDefaultFailureHandler(t *testing.T) {
 	}
 }
 
-func TestRegenerateTokenWorks(t *testing.T) {
-	hand := New(http.HandlerFunc(defaultFailureHandler))
+func TestRegenerateToken(t *testing.T) {
+	hand := New(nil)
 	writer := httptest.NewRecorder()
 
 	req := dummyGet()
 	token := hand.RegenerateToken(writer, req)
+
+	header := writer.Header().Get("Set-Cookie")
+	expected_part := fmt.Sprintf("csrf_token=%s;", token)
+
+	if !strings.Contains(header, expected_part) {
+		t.Errorf("Expected header to contain %v, it doesn't. The header is %v.",
+			expected_part, header)
+	}
+
+}
+
+// Kind of a duplication of TestRegenerateToken,
+// but it's still good to test this too.
+func TestsetTokenCookie(t *testing.T) {
+	hand := New(nil)
+
+	writer := httptest.NewRecorder()
+	req := dummyGet()
+
+	token := "dummy"
+	hand.setTokenCookie(writer, req, token)
 
 	header := writer.Header().Get("Set-Cookie")
 	expected_part := fmt.Sprintf("csrf_token=%s;", token)
