@@ -8,8 +8,13 @@ import (
 )
 
 // Checks if the given path is exempt from CSRF checks
+//
+// The function checks the exact paths first,
+// then the globs and finally the regexps.
+// This behavior just seems to make sense,
+// also, the checking of exact string is the fastest,
+// followed by globs and regexps.
 func (h *CSRFHandler) IsExempt(path string) bool {
-	// Check the exact urls first (the most specific rule)
 	if sContains(h.exemptPaths, path) {
 		return true
 	}
@@ -34,7 +39,7 @@ func (h *CSRFHandler) ExemptPath(path string) {
 	h.exemptPaths = append(h.exemptPaths, path)
 }
 
-// A convienience function to exempt several paths at once
+// A convienience function to exempt several paths at once.
 func (h *CSRFHandler) ExemptPaths(paths ...string) {
 	for _, v := range paths {
 		h.ExemptPath(v)
