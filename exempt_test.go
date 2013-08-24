@@ -39,6 +39,59 @@ func TestExemptPaths(t *testing.T) {
 	}
 }
 
+func TestExemptGlob(t *testing.T) {
+	hand := New(nil)
+	glob := "/[m-n]ail"
+
+	hand.ExemptGlob(glob)
+
+	test := "/mail"
+	if !hand.IsExempt(test) {
+		t.Errorf("%v should be exempt, but it isn't.", test)
+	}
+
+	test = "/nail"
+	if !hand.IsExempt(test) {
+		t.Errorf("%v should be exempt, but it isn't.", test)
+	}
+
+	test = "/snail"
+	if hand.IsExempt(test) {
+		t.Errorf("%v should not be exempt, but it is.", test)
+	}
+
+	test = "/mail/outbox"
+	if hand.IsExempt(test) {
+		t.Errorf("%v should not be exempt, but it is.", test)
+	}
+}
+
+func TestExemptGlobs(t *testing.T) {
+	slice := []string{"/", "/accounts/*", "/post/?*"}
+	matching := []string{"/", "/accounts/", "/accounts/johndoe", "/post/1", "/post/123"}
+
+	nonMatching := []string{"", "/accounts",
+		// glob's * and ? don't match a forward slash
+		"/accounts/johndoe/posts",
+		"/post/",
+	}
+
+	hand := New(nil)
+	hand.ExemptGlobs(slice...)
+
+	for _, v := range matching {
+		if !hand.IsExempt(v) {
+			t.Error("%v should be exempt, but it isn't.")
+		}
+	}
+
+	for _, v := range nonMatching {
+		if hand.IsExempt(v) {
+			t.Error("%v shouldn't be exempt, but it is")
+		}
+	}
+}
+
 // This only tests that ExemptRegexp handles the argument correctly
 // The matching itself is tested by TestExemptRegexpMatching
 func TestExemptRegexpCall(t *testing.T) {

@@ -2,7 +2,7 @@ package nosurf
 
 import (
 	"fmt"
-	_ "path"
+	pathModule "path"
 	"reflect"
 	"regexp"
 )
@@ -19,7 +19,13 @@ func (h *CSRFHandler) IsExempt(path string) bool {
 		return true
 	}
 
-	// glob checking will go here
+	// then the globs
+	for _, glob := range h.exemptGlobs {
+		matched, err := pathModule.Match(glob, path)
+		if matched && err == nil {
+			return true
+		}
+	}
 
 	// finally, the regexps
 	for _, re := range h.exemptRegexps {
@@ -46,7 +52,29 @@ func (h *CSRFHandler) ExemptPaths(paths ...string) {
 	}
 }
 
-// Exempts a regular expression string or a compiled *regexp.Regexp
+// Exempts URLs that match the specified glob pattern
+// (as used by filepath.Match()) from CSRF checks
+//
+// Note that ExemptGlob() is unable to detect syntax errors,
+// because it doesn't have a path to check it against
+// and filepath.Match() doesn't report an error
+// if the path is empty.
+//
+// If we find a way to check the syntax, ExemptGlob
+// MIGHT PANIC on a syntax error in the future.
+// ALWAYS check your globs for syntax errors.
+func (h *CSRFHandler) ExemptGlob(pattern string) {
+	h.exemptGlobs = append(h.exemptGlobs, pattern)
+}
+
+// A variadic argument version of ExemptGlob()
+func (h *CSRFHandler) ExemptGlobs(patterns ...string) {
+	for _, v := range patterns {
+		h.ExemptGlob(v)
+	}
+}
+
+// Accepts a regular expression string or a compiled *regexp.Regexp
 // and exempts URLs that match it from CSRF checks.
 //
 // If the given argument is neither of the accepted values,
