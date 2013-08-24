@@ -10,6 +10,8 @@ import (
 const (
 	// the name of CSRF cookie
 	CookieName = "csrf_token"
+	// the name of the form field
+	FormFieldName = "csrf_token"
 	// the name of CSRF header
 	HeaderName = "X-CSRF-Token"
 	// the HTTP status code for the default failure handler
@@ -18,6 +20,8 @@ const (
 	// Max-Age for the default base cookie. 365 days.
 	DefaultMaxAge = 365 * 24 * 60 * 60
 )
+
+var safeMethods = []string{"GET", "HEAD", "OPTIONS", "TRACE"}
 
 type CSRFHandler struct {
 	// Handlers that CSRFHandler wraps.
@@ -61,6 +65,44 @@ func New(handler http.Handler) *CSRFHandler {
 	}
 
 	return csrf
+}
+
+func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Prefer the header over form value
+	sent_token := r.Header.Get(HeaderName)
+	if sent_token == "" {
+		sent_token = r.PostFormValue(FormFieldName)
+	}
+
+	token_cookie, err := r.Cookie(CookieName)
+	real_token := ""
+	if err == http.ErrNoCookie {
+		real_token = h.RegenerateToken(w, r)
+	} else {
+		real_token = token_cookie.Value
+	}
+	// If the length of the real token isn't what it should be,
+	// it has either been tampered with,
+	// or we're migrating onto a new algorithm for generating tokens.
+	// In any case of those, we should regenerate it.
+	if len(real_token) != tokenLength {
+		real_token = h.RegenerateToken(w, r)
+	}
+
+	// clear the context after the request is served
+	defer ctxClear(r)
+
+	ctxSetToken(r, real_token)
+
+	if sContains(safeMethods, r.Method) {
+		// short-circuit with a success for safe methods
+		h.handleSuccess(w, r)
+		return
+	}
+}
+
+func (h *CSRFHandler) handleSuccess(w http.ResponseWriter, r *http.Request) {
+	h.successHandler.ServeHTTP(w, r)
 }
 
 // Generates a new token, sets it on the given request and returns it

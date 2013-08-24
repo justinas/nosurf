@@ -41,3 +41,27 @@ func TestRegenerateTokenWorks(t *testing.T) {
 			" Expected %v, got %v", token, tokenInContext)
 	}
 }
+
+func TestSafeMethodsPass(t *testing.T) {
+	handler := New(http.HandlerFunc(succHand))
+
+	for _, method := range safeMethods {
+		req, err := http.NewRequest(method, "http://dummy.us", nil)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		writer := httptest.NewRecorder()
+		handler.ServeHTTP(writer, req)
+
+		expected := 200
+
+		if writer.Code != expected {
+			t.Errorf("A safe method didn't pass the CSRF check."+
+				"Expected HTTP status %d, got %d", expected, writer.Code)
+		}
+
+		writer.Flush()
+	}
+}
