@@ -36,7 +36,7 @@ type CSRFHandler struct {
 	// Slices of URLs that are exempt from CSRF checks.
 	// They can be specified by...
 	// ...an exact URL
-	exemptURLs []string
+	exemptPaths []string
 	// ...a glob (as used by path.Match())
 	exemptGlobs []string
 	// ...a regexp.
@@ -58,7 +58,7 @@ func New(handler http.Handler) *CSRFHandler {
 
 	csrf := &CSRFHandler{successHandler: handler,
 		failureHandler: http.HandlerFunc(defaultFailureHandler),
-		exemptURLs:     make([]string, 0),
+		exemptPaths:    make([]string, 0),
 		exemptGlobs:    make([]string, 0),
 		exemptRegexps:  make([]*regexp.Regexp, 0),
 		baseCookie:     baseCookie,
@@ -91,7 +91,6 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// clear the context after the request is served
 	defer ctxClear(r)
-
 	ctxSetToken(r, real_token)
 
 	if sContains(safeMethods, r.Method) {
