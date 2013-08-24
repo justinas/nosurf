@@ -83,3 +83,19 @@ func TestGetsReasonCorrectly(t *testing.T) {
 		t.Errorf("Reason has been set to %v, but it's %v", intended, reason)
 	}
 }
+
+func TestClearsContextEntry(t *testing.T) {
+	req := dummyGet()
+
+	ctxSetToken(req, "dummy")
+	ctxSetReason(req, errors.New("some error"))
+
+	ctxClear(req)
+
+	entry, found := contextMap[req]
+
+	if found {
+		t.Errorf("Context entry %v found for the request %v, even though"+
+			" it should have been cleared.", entry, req)
+	}
+}

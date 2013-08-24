@@ -81,3 +81,10 @@ func ctxSetReason(req *http.Request, reason error) {
 
 	ctx.reason = reason
 }
+
+func ctxClear(req *http.Request) {
+	cmMutex.Lock()
+	defer cmMutex.Unlock()
+
+	delete(contextMap, req)
+}
