@@ -8,11 +8,11 @@ import (
 func TestSetsReasonCorrectly(t *testing.T) {
 	req := dummyGet()
 
-	// set token first, as it's required for setReason
-	setToken(req, "abcdef")
+	// set token first, as it's required for ctxSetReason
+	ctxSetToken(req, "abcdef")
 
 	err := errors.New("universe imploded")
-	setReason(req, err)
+	ctxSetReason(req, err)
 
 	got := contextMap[req].reason
 
@@ -28,17 +28,17 @@ func TestSettingReasonFailsWithoutContext(t *testing.T) {
 	defer func() {
 		r := recover()
 		if r == nil {
-			t.Error("setReason() didn't panic on no context")
+			t.Error("ctxSetReason() didn't panic on no context")
 		}
 	}()
 
-	setReason(req, err)
+	ctxSetReason(req, err)
 }
 
 func TestSetsTokenCorrectly(t *testing.T) {
 	req := dummyGet()
 	token := "abcdef"
-	setToken(req, token)
+	ctxSetToken(req, token)
 
 	got := contextMap[req].token
 
@@ -56,7 +56,7 @@ func TestGetsTokenCorrectly(t *testing.T) {
 	}
 
 	intended := "abcdef"
-	setToken(req, intended)
+	ctxSetToken(req, intended)
 
 	token = Token(req)
 	if token != "abcdef" {
@@ -72,11 +72,11 @@ func TestGetsReasonCorrectly(t *testing.T) {
 		t.Errorf("Reason hasn't been set yet, but it's not nil, it's %v", reason)
 	}
 
-	// again, needed for setReason() to work
-	setToken(req, "dummy")
+	// again, needed for ctxSetReason() to work
+	ctxSetToken(req, "dummy")
 
 	intended := errors.New("universe imploded")
-	setReason(req, intended)
+	ctxSetReason(req, intended)
 
 	reason = Reason(req)
 	if reason != intended {

@@ -56,7 +56,7 @@ func Reason(req *http.Request) error {
 	return ctx.reason
 }
 
-func setToken(req *http.Request, token string) {
+func ctxSetToken(req *http.Request, token string) {
 	cmMutex.Lock()
 	defer cmMutex.Unlock()
 
@@ -69,7 +69,7 @@ func setToken(req *http.Request, token string) {
 	ctx.token = token
 }
 
-func setReason(req *http.Request, reason error) {
+func ctxSetReason(req *http.Request, reason error) {
 	cmMutex.Lock()
 	defer cmMutex.Unlock()
 

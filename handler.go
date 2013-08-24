@@ -73,7 +73,7 @@ func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) st
 
 	http.SetCookie(w, &cookie)
 
-	setToken(r, token)
+	ctxSetToken(r, token)
 
 	return token
 }
