@@ -100,8 +100,17 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handleSuccess simply calls the successHandler
+// everything else, like setting a token in the context
+// is taken care of by h.ServeHTTP()
 func (h *CSRFHandler) handleSuccess(w http.ResponseWriter, r *http.Request) {
 	h.successHandler.ServeHTTP(w, r)
+}
+
+// Same applies here: h.ServeHTTP() sets the failure reason, the token,
+// and only then calls handleFailure()
+func (h *CSRFHandler) handleFailure(w http.ResponseWriter, r *http.Request) {
+	h.failureHandler.ServeHTTP(w, r)
 }
 
 // Generates a new token, sets it on the given request and returns it
