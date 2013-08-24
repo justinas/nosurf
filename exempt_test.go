@@ -16,6 +16,24 @@ func TestExemptPath(t *testing.T) {
 
 	other := "/faq"
 	if hand.IsExempt(other) {
-		t.Errorf("%v is exemept, but it shouldn't be", other)
+		t.Errorf("%v is exempt, but it shouldn't be", other)
+	}
+}
+
+func TestExemptPaths(t *testing.T) {
+	hand := New(nil)
+	paths := []string{"/home", "/news", "/help"}
+	hand.ExemptPaths(paths...)
+
+	for _, v := range paths {
+		if !hand.IsExempt(v) {
+			t.Errorf("%v should be exempt, but it isn't", v)
+		}
+	}
+
+	other := "/accounts"
+
+	if hand.IsExempt(other) {
+		t.Errorf("%v is exempt, but it shouldn't be")
 	}
 }
