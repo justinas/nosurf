@@ -104,6 +104,10 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // everything else, like setting a token in the context
 // is taken care of by h.ServeHTTP()
 func (h *CSRFHandler) handleSuccess(w http.ResponseWriter, r *http.Request) {
+	// On a successful check, we might as well renew the cookie.
+	token := Token(r)
+	h.setTokenCookie(w, r, token)
+
 	h.successHandler.ServeHTTP(w, r)
 }
 
