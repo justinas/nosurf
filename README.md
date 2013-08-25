@@ -27,6 +27,7 @@ an exact URL, a glob, or a regular expression.
 * Allows specifying your own failure handler. 
 Want to present the hacker with an ASCII middle finger
 instead of the plain old `HTTP 400`? No problem.
+* Has no dependencies outside the Go standard library.
 
 ### Example
 ```go
