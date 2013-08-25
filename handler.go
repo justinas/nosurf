@@ -20,7 +20,7 @@ const (
 	FailureCode = 400
 
 	// Max-Age in seconds for the default base cookie. 365 days.
-	DefaultMaxAge = 365 * 24 * 60 * 60
+	MaxAge = 365 * 24 * 60 * 60
 )
 
 var safeMethods = []string{"GET", "HEAD", "OPTIONS", "TRACE"}
@@ -63,7 +63,7 @@ func defaultFailureHandler(w http.ResponseWriter, r *http.Request) {
 // the specified handler if the CSRF check succeeds.
 func New(handler http.Handler) *CSRFHandler {
 	baseCookie := http.Cookie{}
-	baseCookie.MaxAge = DefaultMaxAge
+	baseCookie.MaxAge = MaxAge
 
 	csrf := &CSRFHandler{successHandler: handler,
 		failureHandler: http.HandlerFunc(defaultFailureHandler),
