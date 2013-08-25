@@ -1,5 +1,7 @@
 # nosurf
 
+[![](http://goci.me/project/image/github.com/justinas/nosurf)](http://goci.me/project//github.com/justinas/nosurf)
+
 `nosurf` is an HTTP package for Go
 that helps you prevent Cross-Site Request Forgery attacks.
 It acts like a middleware and therefore 
@@ -25,3 +27,56 @@ an exact URL, a glob, or a regular expression.
 * Allows specifying your own failure handler. 
 Want to present the hacker with an ASCII middle finger
 instead of the plain old `HTTP 400`? No problem.
+
+### Example
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/justinas/nosurf"
+	"html/template"
+	"net/http"
+)
+
+var templateString string = `
+<!doctype html>
+<html>
+<body>
+{{ if .name }}
+<p>Your name: {{ .name }}</p>
+{{ end }}
+<form action="/" method="POST">
+<input type="text" name="name">
+
+<!-- Try removing this or changing its value
+     and see what happens -->
+<input type="hidden" name="csrf_token" value="{{ .token }}">
+<input type="submit" value="Send">
+</form>
+</body>
+</html>
+`
+var templ = template.Must(template.New("t1").Parse(templateString))
+
+func myFunc(w http.ResponseWriter, r *http.Request) {
+	context := make(map[string]string)
+	context["token"] = nosurf.Token(r)
+	if r.Method == "POST" {
+		context["name"] = r.FormValue("name")
+	}
+	
+	templ.Execute(w, context)
+}
+
+func main() {
+	myHandler := http.HandlerFunc(myFunc)
+	http.ListenAndServe(":8000", nosurf.New(myHandler))
+	fmt.Println("Listening on http://127.0.0.1:8000/")
+}
+```
+
+More examples can be found in the 
+[examples/](https://github.com/justinas/nosurf/tree/master/examples/) directory.
+Feel free to add one for your favorite framework 
+or an unusual setup of the default HTTP tools.
