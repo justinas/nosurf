@@ -87,6 +87,28 @@ func TestSafeMethodsPass(t *testing.T) {
 	}
 }
 
+func TestExemptedPass(t *testing.T) {
+	handler := New(http.HandlerFunc(succHand))
+	handler.ExemptPath("/faq")
+
+	req, err := http.NewRequest("POST", "http://dummy.us/faq", strings.NewReader("a=b"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	writer := httptest.NewRecorder()
+	handler.ServeHTTP(writer, req)
+
+	expected := 200
+
+	if writer.Code != expected {
+		t.Errorf("An exempted URL didn't pass the CSRF check."+
+			"Expected HTTP status %d, got %d", expected, writer.Code)
+	}
+
+	writer.Flush()
+}
+
 // Tests that the token/reason context is accessible
 // in the success/failure handlers
 func TestContextIsAccessible(t *testing.T) {

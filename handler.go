@@ -110,6 +110,11 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.IsExempt(r.URL.Path) {
+		h.handleSuccess(w, r)
+		return
+	}
+
 	// if the request is secure, we enforce origin check
 	// for referer to prevent MITM of http->https requests
 	if r.URL.Scheme == "https" {
