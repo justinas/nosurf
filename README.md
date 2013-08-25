@@ -80,3 +80,14 @@ More examples can be found in the
 [examples/](https://github.com/justinas/nosurf/tree/master/examples/) directory.
 Feel free to add one for your favorite framework 
 or an unusual setup of the default HTTP tools.
+
+### API Docs
+
+... are at [GoDoc](http://godoc.org/github.com/justinas/nosurf). No big surprise, right?
+
+### Contributing
+
+0. Find an issue that bugs you / open a new one.
+1. Discuss.
+2. Branch off the `develop` branch, commit, test.
+3. Make a pull request / attach the commits to the issue.
