@@ -1,9 +1,9 @@
+// +build !goci
+
 // Demonstrates advanced usage of nosurf in conjuction with net/http:
 // * wrapping DefaultServeMux (http.Handle(), etc.)
 // * exempting URLs
 // * setting your own failure handler
-
-// +build !goci
 package main
 
 import (
