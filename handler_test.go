@@ -86,3 +86,25 @@ func TestSafeMethodsPass(t *testing.T) {
 		writer.Flush()
 	}
 }
+
+// Tests that the token/reason context is accessible
+// in the success/failure handlers
+func TestContextIsAccessible(t *testing.T) {
+	// case 1: success
+	succHand := func(w http.ResponseWriter, r *http.Request) {
+		token := Token(r)
+		if token == "" {
+			t.Errorf("Token is inaccessible in the success handler")
+		}
+	}
+
+	hand := New(http.HandlerFunc(succHand))
+
+	// we need a request that passes. Let's just use a safe method for that.
+	req := dummyGet()
+	writer := httptest.NewRecorder()
+
+	hand.ServeHTTP(writer, req)
+
+	// I'll do the failure case when there is actual logic for failures
+}
