@@ -3,7 +3,9 @@
 package nosurf
 
 import (
+	"errors"
 	"net/http"
+	"net/url"
 	"regexp"
 )
 
@@ -17,11 +19,18 @@ const (
 	// the HTTP status code for the default failure handler
 	FailureCode = 400
 
-	// Max-Age for the default base cookie. 365 days.
+	// Max-Age in seconds for the default base cookie. 365 days.
 	DefaultMaxAge = 365 * 24 * 60 * 60
 )
 
 var safeMethods = []string{"GET", "HEAD", "OPTIONS", "TRACE"}
+
+// reasons for CSRF check failures
+var (
+	ErrNoReferer  = errors.New("A secure request contained no Referer or its value was malformed")
+	ErrBadReferer = errors.New("A secure request's Referer comes from a different Origin" +
+		" from the request's URL")
+)
 
 type CSRFHandler struct {
 	// Handlers that CSRFHandler wraps.
@@ -81,10 +90,14 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		real_token = token_cookie.Value
 	}
+
 	// If the length of the real token isn't what it should be,
 	// it has either been tampered with,
 	// or we're migrating onto a new algorithm for generating tokens.
 	// In any case of those, we should regenerate it.
+	//
+	// As a consequence, CSRF check will fail when comparing the tokens later on,
+	// so we don't have to fail it just yet.
 	if len(real_token) != tokenLength {
 		real_token = h.RegenerateToken(w, r)
 	}
@@ -98,6 +111,29 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleSuccess(w, r)
 		return
 	}
+
+	// if the request is secure, we enforce origin check
+	// for referer to prevent MITM of http->https requests
+	if r.URL.Scheme == "https" {
+		referer, err := url.Parse(r.Header.Get("Referer"))
+
+		// if we can't parse the referer or it's empty,
+		// we assume it's not specified
+		if err != nil || referer.String() == "" {
+			ctxSetReason(r, ErrNoReferer)
+			h.handleFailure(w, r)
+			return
+		}
+
+		// if the referer doesn't share origin with the request URL,
+		// we have another error for that
+		if !sameOrigin(referer, r.URL) {
+			ctxSetReason(r, ErrBadReferer)
+			h.handleFailure(w, r)
+			return
+		}
+	}
+
 }
 
 // handleSuccess simply calls the successHandler
