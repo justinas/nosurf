@@ -140,7 +140,9 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sentToken = r.PostFormValue(FormFieldName)
 	}
 
-	if subtle.ConstantTimeCompare([]byte(sentToken), []byte(realToken)) != 1 {
+	// Oh god. ConstantTimeCompare only compares equal length slices correctly.
+	comparison := subtle.ConstantTimeCompare([]byte(sentToken), []byte(realToken))
+	if len(sentToken) != len(realToken) || comparison != 1 {
 		ctxSetReason(r, ErrBadToken)
 		h.handleFailure(w, r)
 		return

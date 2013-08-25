@@ -164,6 +164,11 @@ func TestNoTokenFails(t *testing.T) {
 	writer := httptest.NewRecorder()
 
 	hand.ServeHTTP(writer, req)
+
+	if writer.Code != FailureCode {
+		t.Errorf("The check should've failed with the code %d, but instead, it"+
+			" returned code %d", FailureCode, writer.Code)
+	}
 }
 
 func TestWrongTokenFails(t *testing.T) {
@@ -184,6 +189,11 @@ func TestWrongTokenFails(t *testing.T) {
 	writer := httptest.NewRecorder()
 
 	hand.ServeHTTP(writer, req)
+
+	if writer.Code != FailureCode {
+		t.Errorf("The check should've failed with the code %d, but instead, it"+
+			" returned code %d", FailureCode, writer.Code)
+	}
 }
 
 // For this and similar tests we start a test server
