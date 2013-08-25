@@ -3,6 +3,7 @@
 // * exempting URLs
 // * setting your own failure handler
 
+// +build !goci
 package main
 
 import (
