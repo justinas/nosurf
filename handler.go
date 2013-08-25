@@ -141,11 +141,17 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Oh god. ConstantTimeCompare only compares equal length slices correctly.
-	comparison := subtle.ConstantTimeCompare([]byte(sentToken), []byte(realToken))
-	if len(sentToken) != len(realToken) || comparison != 1 {
+	if len(sentToken) != len(realToken) {
 		ctxSetReason(r, ErrBadToken)
 		h.handleFailure(w, r)
 		return
+	} else {
+		comparison := subtle.ConstantTimeCompare([]byte(sentToken), []byte(realToken))
+		if comparison != 1 {
+			ctxSetReason(r, ErrBadToken)
+			h.handleFailure(w, r)
+			return
+		}
 	}
 
 	// Everything else passed, handle the success.
