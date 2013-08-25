@@ -43,6 +43,8 @@ func Token(req *http.Request) string {
 
 // Reason() takes an HTTP request and returns
 // the reason of failure of the CSRF check for that request
+//
+// Note that the same availability restrictions apply for Reason() as for Token().
 func Reason(req *http.Request) error {
 	cmMutex.RLock()
 	defer cmMutex.RUnlock()
