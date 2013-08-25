@@ -2,6 +2,8 @@ package nosurf
 
 import (
 	"net/http"
+	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -32,4 +34,30 @@ func correctReason(t *testing.T, reason error) http.Handler {
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+// Gets a cookie with the specified name from the Response
+// Returns nil on not finding a suitable cookie
+func getRespCookie(resp *http.Response, name string) *http.Cookie {
+	for _, c := range resp.Cookies() {
+		if c.Name == name {
+			return c
+		}
+	}
+	return nil
+}
+
+// Encodes a slice of key-value pairs to a form value string
+func formBody(pairs [][]string) string {
+	vals := url.Values{}
+	for _, pair := range pairs {
+		vals.Add(pair[0], pair[1])
+	}
+
+	return vals.Encode()
+}
+
+// The same as formBody(), but wraps the string in a Reader
+func formBodyR(pairs [][]string) *strings.Reader {
+	return strings.NewReader(formBody(pairs))
 }

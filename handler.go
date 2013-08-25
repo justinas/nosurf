@@ -3,6 +3,7 @@
 package nosurf
 
 import (
+	"crypto/subtle"
 	"errors"
 	"net/http"
 	"net/url"
@@ -30,6 +31,8 @@ var (
 	ErrNoReferer  = errors.New("A secure request contained no Referer or its value was malformed")
 	ErrBadReferer = errors.New("A secure request's Referer comes from a different Origin" +
 		" from the request's URL")
+	ErrBadToken = errors.New("The CSRF token in the cookie doesn't match the one" +
+		" received in a form/header.")
 )
 
 type CSRFHandler struct {
@@ -77,34 +80,29 @@ func New(handler http.Handler) *CSRFHandler {
 }
 
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Prefer the header over form value
-	sent_token := r.Header.Get(HeaderName)
-	if sent_token == "" {
-		sent_token = r.PostFormValue(FormFieldName)
-	}
-
 	token_cookie, err := r.Cookie(CookieName)
-	real_token := ""
+	realToken := ""
 	if err == http.ErrNoCookie {
-		real_token = h.RegenerateToken(w, r)
+		realToken = h.RegenerateToken(w, r)
 	} else {
-		real_token = token_cookie.Value
+		realToken = token_cookie.Value
 	}
 
 	// If the length of the real token isn't what it should be,
 	// it has either been tampered with,
-	// or we're migrating onto a new algorithm for generating tokens.
+	// or we're migrating onto a new algorithm for generating tokens,
+	// or it hasn't ever been set so far.
 	// In any case of those, we should regenerate it.
 	//
 	// As a consequence, CSRF check will fail when comparing the tokens later on,
 	// so we don't have to fail it just yet.
-	if len(real_token) != tokenLength {
-		real_token = h.RegenerateToken(w, r)
+	if len(realToken) != tokenLength {
+		realToken = h.RegenerateToken(w, r)
 	}
 
 	// clear the context after the request is served
 	defer ctxClear(r)
-	ctxSetToken(r, real_token)
+	ctxSetToken(r, realToken)
 
 	if sContains(safeMethods, r.Method) {
 		// short-circuit with a success for safe methods
@@ -134,6 +132,22 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Finally, we check the token itself.
+
+	// Prefer the header over form value
+	sentToken := r.Header.Get(HeaderName)
+	if sentToken == "" {
+		sentToken = r.PostFormValue(FormFieldName)
+	}
+
+	if subtle.ConstantTimeCompare([]byte(sentToken), []byte(realToken)) != 1 {
+		ctxSetReason(r, ErrBadToken)
+		h.handleFailure(w, r)
+		return
+	}
+
+	// Everything else passed, handle the success.
+	h.handleSuccess(w, r)
 }
 
 // handleSuccess simply calls the successHandler

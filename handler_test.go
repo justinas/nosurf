@@ -147,3 +147,131 @@ func TestDifferentOriginRefererFails(t *testing.T) {
 			"should have failed with the code %d, but it didn't.", writer.Code)
 	}
 }
+
+func TestNoTokenFails(t *testing.T) {
+	hand := New(http.HandlerFunc(succHand))
+	fhand := correctReason(t, ErrBadToken)
+	hand.SetFailureHandler(fhand)
+
+	vals := [][]string{
+		{"name", "Jolene"},
+	}
+
+	req, err := http.NewRequest("POST", "http://dummy.us", formBodyR(vals))
+	if err != nil {
+		panic(err)
+	}
+	writer := httptest.NewRecorder()
+
+	hand.ServeHTTP(writer, req)
+}
+
+func TestWrongTokenFails(t *testing.T) {
+	hand := New(http.HandlerFunc(succHand))
+	fhand := correctReason(t, ErrBadToken)
+	hand.SetFailureHandler(fhand)
+
+	vals := [][]string{
+		{"name", "Jolene"},
+		// this won't EVER be a valid value with the current scheme
+		{FormFieldName, "$#%^&"},
+	}
+
+	req, err := http.NewRequest("POST", "http://dummy.us", formBodyR(vals))
+	if err != nil {
+		panic(err)
+	}
+	writer := httptest.NewRecorder()
+
+	hand.ServeHTTP(writer, req)
+}
+
+// For this and similar tests we start a test server
+// Since it's much easier to get the cookie
+// from a normal http.Response than from the recorder
+func TestCorrectTokenPasses(t *testing.T) {
+	hand := New(http.HandlerFunc(succHand))
+
+	server := httptest.NewServer(hand)
+	defer server.Close()
+
+	// issue the first request to get the token
+	resp, err := http.Get(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cookie := getRespCookie(resp, CookieName)
+	if cookie == nil {
+		t.Fatal("Cookie was not found in the response.")
+	}
+
+	vals := [][]string{
+		{"name", "Jolene"},
+		{FormFieldName, cookie.Value},
+	}
+
+	// Constructing a custom request is suffering
+	req, err := http.NewRequest("POST", server.URL, formBodyR(vals))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(cookie)
+
+	resp, err = http.DefaultClient.Do(req)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != 200 {
+		t.Errorf("The request should have succeeded, but it didn't. Instead, the code was %d",
+			resp.StatusCode)
+	}
+}
+
+func TestPrefersHeaderOverFormValue(t *testing.T) {
+	// Let's do a nice trick to find out this:
+	// We'll set the correct token in the header
+	// And a wrong one in the form.
+	// That way, if it succeeds,
+	// it will mean that it prefered the header.
+
+	hand := New(http.HandlerFunc(succHand))
+
+	server := httptest.NewServer(hand)
+	defer server.Close()
+
+	resp, err := http.Get(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cookie := getRespCookie(resp, CookieName)
+	if cookie == nil {
+		t.Fatal("Cookie was not found in the response.")
+	}
+
+	vals := [][]string{
+		{"name", "Jolene"},
+		{FormFieldName, "a very wrong value"},
+	}
+
+	req, err := http.NewRequest("POST", server.URL, formBodyR(vals))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set(HeaderName, cookie.Value)
+	req.AddCookie(cookie)
+
+	resp, err = http.DefaultClient.Do(req)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != 200 {
+		t.Errorf("The request should have succeeded, but it didn't. Instead, the code was %d",
+			resp.StatusCode)
+	}
+}
