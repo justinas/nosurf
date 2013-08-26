@@ -70,9 +70,6 @@ func New(handler http.Handler) *CSRFHandler {
 
 	csrf := &CSRFHandler{successHandler: handler,
 		failureHandler: http.HandlerFunc(defaultFailureHandler),
-		exemptPaths:    make([]string, 0),
-		exemptGlobs:    make([]string, 0),
-		exemptRegexps:  make([]*regexp.Regexp, 0),
 		baseCookie:     baseCookie,
 	}
 
