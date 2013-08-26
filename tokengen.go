@@ -21,10 +21,13 @@ var (
 func generateToken() string {
 	bytes := make([]byte, rawTokenLength)
 	_, _ = io.ReadFull(rand.Reader, bytes)
-	// I'm not sure how to handle an error here.
+
+	// I'm not sure how to handle the error from the above call.
 	// It shouldn't EVER really happen,
-	// As we check for the availablity of crypto/random
-	// in the init() function.
+	// as we check for the availablity of crypto/random
+	// in the init() function
+	// and both /dev/urandom and CryptGenRandom()
+	// should be inexhaustible.
 
 	return base64.StdEncoding.EncodeToString(bytes)
 }
