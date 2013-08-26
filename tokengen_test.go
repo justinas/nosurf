@@ -1,14 +1,13 @@
 package nosurf
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
 	"testing"
 )
 
 func TestGeneratesAValidToken(t *testing.T) {
 	// We can't test much with any certainity here,
-	// since we generate hashes from random numbers.
+	// since we generate tokens randomly
 
 	// Basically we check that the length of the
 	// encoded / decoded token is what it should be
@@ -17,7 +16,7 @@ func TestGeneratesAValidToken(t *testing.T) {
 	l := len(token)
 
 	if l != tokenLength {
-		t.Errorf("Bad token length: expected %d, got %d", l, tokenLength)
+		t.Errorf("Bad token length: expected %d, got %d", tokenLength, l)
 	}
 
 	hash, err := base64.StdEncoding.DecodeString(token)
@@ -26,7 +25,7 @@ func TestGeneratesAValidToken(t *testing.T) {
 	}
 
 	l = len(hash)
-	if l != sha256.Size {
-		t.Errorf("Bad decoded token length: expected %d, got %d", sha256.Size, l)
+	if l != rawTokenLength {
+		t.Errorf("Bad decoded token length: expected %d, got %d", rawTokenLength, l)
 	}
 }
