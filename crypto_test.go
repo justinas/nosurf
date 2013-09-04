@@ -50,3 +50,34 @@ func TestOtpDecryptsCorrectly(t *testing.T) {
 			" expected %#v, got %#v", orig, data)
 	}
 }
+
+func TestEncryptsTokenCorrectly(t *testing.T) {
+	// needs to be of tokenLength
+	token := []byte("12345678901234567890123456789012")
+	fullToken := encryptToken(token)
+
+	if len(fullToken) != 2*tokenLength {
+		t.Errorf("len(fullToken) is not %d, but %d", 2*tokenLength, len(fullToken))
+	}
+
+	key := fullToken[:tokenLength]
+	encToken := fullToken[tokenLength:]
+
+	// perform decryption
+	oneTimePad(encToken, key)
+
+	if !bytes.Equal(encToken, token) {
+		t.Errorf("Decrypted token is invalid: expected %v, got %v", token, encToken)
+	}
+}
+
+func TestDecryptsTokenCorrectly(t *testing.T) {
+	token := []byte("12345678901234567890123456789012")
+	fullToken := encryptToken(token)
+
+	decToken := decryptToken(fullToken)
+
+	if !bytes.Equal(decToken, token) {
+		t.Errorf("Decrypted token is invalid: expected %v, got %v", token, decToken)
+	}
+}
