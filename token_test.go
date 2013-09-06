@@ -41,3 +41,35 @@ func TestVerifyTokenChecksLengthCorrectly(t *testing.T) {
 		t.Errorf("verifyToken should've returned true on a zeroed slice of length 64")
 	}
 }
+
+func TestVerifiesPlainTokenCorrectly(t *testing.T) {
+	slice1 := []byte("qwertyuiopasdfghjklzxcvbnm123456")
+	slice2 := []byte("qwertyuiopasdfghjklzxcvbnm123456")
+
+	if !verifyToken(slice1, slice2) {
+		t.Errorf("verifyToken returned a false negative")
+	}
+
+	slice1[0] = 'x'
+
+	if verifyToken(slice1, slice2) {
+		t.Errorf("verifyToken returned a false positive")
+	}
+}
+
+func TestVerifiesEncryptedTokenCorrectly(t *testing.T) {
+	realToken := []byte("qwertyuiopasdfghjklzxcvbnm123456")
+	sentToken := []byte("qwertyuiopasdfghjklzxcvbnm123456" +
+		"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" +
+		"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+
+	if !verifyToken(realToken, sentToken) {
+		t.Errorf("verifyToken returned a false negative")
+	}
+
+	realToken[0] = 'x'
+
+	if verifyToken(realToken, sentToken) {
+		t.Errorf("verifyToken returned a false positive")
+	}
+}
