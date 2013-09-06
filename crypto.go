@@ -46,7 +46,7 @@ func decryptToken(data []byte) []byte {
 
 	key := data[:tokenLength]
 	token := data[tokenLength:]
-	oneTimePad(key, token)
+	oneTimePad(token, key)
 
 	return token
 }
