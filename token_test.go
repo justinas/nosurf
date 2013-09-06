@@ -17,3 +17,27 @@ func TestGeneratesAValidToken(t *testing.T) {
 		t.Errorf("Bad decoded token length: expected %d, got %d", tokenLength, l)
 	}
 }
+
+func TestVerifyTokenChecksLengthCorrectly(t *testing.T) {
+	for i := 0; i < 64; i++ {
+		if i == 32 {
+			continue
+		}
+		slice := make([]byte, i)
+		result := verifyToken(slice, slice)
+		if result != false {
+			t.Errorf("verifyToken should've returned false with slices of length %d", i)
+		}
+	}
+	slice := make([]byte, 32)
+	result := verifyToken(slice, slice)
+	if result != true {
+		t.Errorf("verifyToken should've returned true on a zeroed slice of length 32")
+	}
+
+	slice = make([]byte, 64)
+	result = verifyToken(slice[:32], slice)
+	if result != true {
+		t.Errorf("verifyToken should've returned true on a zeroed slice of length 64")
+	}
+}

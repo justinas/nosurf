@@ -2,6 +2,7 @@ package nosurf
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -37,6 +38,35 @@ func b64decode(data string) []byte {
 		return nil
 	}
 	return decoded
+}
+
+// Verifies the sent token equals the real one
+// and returns a bool value indicating if tokens are equal.
+// Supports encrypted tokens.
+func verifyToken(realToken, sentToken []byte) bool {
+	realN := len(realToken)
+	sentN := len(sentToken)
+
+	// sentN == tokenLength means the token is unencrypted
+	// sentN == 2*tokenLength means the token is encrypted
+
+	if realN == tokenLength && sentN == 2*tokenLength {
+		return verifyEncrypted(realToken, sentToken)
+	} else if realN == tokenLength && sentN == tokenLength {
+		return verifyPlain(realToken, sentToken)
+	} else {
+		return false
+	}
+}
+
+// Verifies the encrypted token
+func verifyEncrypted(realToken, sentToken []byte) bool {
+	sentPlain := decryptToken(sentToken)
+	return subtle.ConstantTimeCompare(realToken, sentPlain) == 1
+}
+
+func verifyPlain(realToken, sentToken []byte) bool {
+	return subtle.ConstantTimeCompare(realToken, sentToken) == 1
 }
 
 func init() {
