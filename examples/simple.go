@@ -44,6 +44,6 @@ func myFunc(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	myHandler := http.HandlerFunc(myFunc)
-	http.ListenAndServe(":8000", nosurf.New(myHandler))
 	fmt.Println("Listening on http://127.0.0.1:8000/")
+	http.ListenAndServe(":8000", nosurf.New(myHandler))
 }
