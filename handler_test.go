@@ -307,3 +307,15 @@ func TestPrefersHeaderOverFormValue(t *testing.T) {
 			resp.StatusCode)
 	}
 }
+
+func TestAddsVaryCookieHeader(t *testing.T) {
+	hand := New(http.HandlerFunc(succHand))
+	writer := httptest.NewRecorder()
+	req := dummyGet()
+
+	hand.ServeHTTP(writer, req)
+
+	if !sContains(writer.Header()["Vary"], "Cookie") {
+		t.Errorf("CSRFHandler didn't add a `Vary: Cookie` header.")
+	}
+}

@@ -77,6 +77,8 @@ func New(handler http.Handler) *CSRFHandler {
 }
 
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Vary", "Cookie")
+
 	token_cookie, err := r.Cookie(CookieName)
 	realToken := ""
 	if err == http.ErrNoCookie {
