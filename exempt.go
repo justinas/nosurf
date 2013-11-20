@@ -36,7 +36,7 @@ func (h *CSRFHandler) IsExempt(path string) bool {
 // Exempts an exact path from CSRF checks
 // With this (and other Exempt* methods)
 // you should take note that Go's paths
-// include a trailing slash.
+// include a leading slash.
 func (h *CSRFHandler) ExemptPath(path string) {
 	h.exemptPaths = append(h.exemptPaths, path)
 }
