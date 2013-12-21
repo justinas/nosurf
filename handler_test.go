@@ -1,6 +1,7 @@
 package nosurf
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -25,7 +26,7 @@ func TestRegenerateToken(t *testing.T) {
 	writer := httptest.NewRecorder()
 
 	req := dummyGet()
-	token := hand.RegenerateToken(writer, req)
+	token := b64encode(decryptToken(b64decode(hand.RegenerateToken(writer, req))))
 
 	header := writer.Header().Get("Set-Cookie")
 	expected_part := fmt.Sprintf("csrf_token=%s;", token)
@@ -45,7 +46,7 @@ func TestsetTokenCookie(t *testing.T) {
 	writer := httptest.NewRecorder()
 	req := dummyGet()
 
-	token := "dummy"
+	token := []byte("dummy")
 	hand.setTokenCookie(writer, req, token)
 
 	header := writer.Header().Get("Set-Cookie")
@@ -56,8 +57,8 @@ func TestsetTokenCookie(t *testing.T) {
 			expected_part, header)
 	}
 
-	tokenInContext := Token(req)
-	if tokenInContext != token {
+	tokenInContext := decryptToken(b64decode(Token(req)))
+	if !bytes.Equal(tokenInContext, token) {
 		t.Errorf("RegenerateToken didn't set the token in the context map!"+
 			" Expected %v, got %v", token, tokenInContext)
 	}
@@ -127,8 +128,6 @@ func TestContextIsAccessible(t *testing.T) {
 	writer := httptest.NewRecorder()
 
 	hand.ServeHTTP(writer, req)
-
-	// I'll do the failure case when there is actual logic for failures
 }
 
 func TestEmptyRefererFails(t *testing.T) {
@@ -223,6 +222,9 @@ func TestWrongTokenFails(t *testing.T) {
 // from a normal http.Response than from the recorder
 func TestCorrectTokenPasses(t *testing.T) {
 	hand := New(http.HandlerFunc(succHand))
+	hand.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("Test failed. Reason: %v", Reason(r))
+	}))
 
 	server := httptest.NewServer(hand)
 	defer server.Close()
@@ -238,9 +240,11 @@ func TestCorrectTokenPasses(t *testing.T) {
 		t.Fatal("Cookie was not found in the response.")
 	}
 
+	finalToken := b64encode(encryptToken(b64decode(cookie.Value)))
+
 	vals := [][]string{
 		{"name", "Jolene"},
-		{FormFieldName, cookie.Value},
+		{FormFieldName, finalToken},
 	}
 
 	// Constructing a custom request is suffering
@@ -284,6 +288,8 @@ func TestPrefersHeaderOverFormValue(t *testing.T) {
 		t.Fatal("Cookie was not found in the response.")
 	}
 
+	finalToken := b64encode(encryptToken(b64decode(cookie.Value)))
+
 	vals := [][]string{
 		{"name", "Jolene"},
 		{FormFieldName, "a very wrong value"},
@@ -294,7 +300,7 @@ func TestPrefersHeaderOverFormValue(t *testing.T) {
 		t.Fatal(err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set(HeaderName, cookie.Value)
+	req.Header.Set(HeaderName, finalToken)
 	req.AddCookie(cookie)
 
 	resp, err = http.DefaultClient.Do(req)
