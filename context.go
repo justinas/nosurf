@@ -10,6 +10,8 @@ import (
 // and not using gorilla's package just because.
 
 type csrfContext struct {
+	// The encrypted, base64 encoded token
+	// That's suitable for use in form fields, etc.
 	token string
 	// reason for the failure of CSRF check
 	reason error
@@ -58,7 +60,9 @@ func Reason(req *http.Request) error {
 	return ctx.reason
 }
 
-func ctxSetToken(req *http.Request, token string) {
+// Takes a raw token, encrypts it with a per-request key,
+// encodes in base64 and makes it available to the wrapped handler
+func ctxSetToken(req *http.Request, token []byte) {
 	cmMutex.Lock()
 	defer cmMutex.Unlock()
 
@@ -68,7 +72,7 @@ func ctxSetToken(req *http.Request, token string) {
 		contextMap[req] = ctx
 	}
 
-	ctx.token = token
+	ctx.token = b64encode(encryptToken(token))
 }
 
 func ctxSetReason(req *http.Request, reason error) {
