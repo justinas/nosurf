@@ -1,6 +1,7 @@
 package nosurf
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 )
@@ -9,7 +10,7 @@ func TestSetsReasonCorrectly(t *testing.T) {
 	req := dummyGet()
 
 	// set token first, as it's required for ctxSetReason
-	ctxSetToken(req, "abcdef")
+	ctxSetToken(req, []byte("abcdef"))
 
 	err := errors.New("universe imploded")
 	ctxSetReason(req, err)
@@ -37,12 +38,12 @@ func TestSettingReasonFailsWithoutContext(t *testing.T) {
 
 func TestSetsTokenCorrectly(t *testing.T) {
 	req := dummyGet()
-	token := "abcdef"
+	token := []byte("12345678901234567890123456789012")
 	ctxSetToken(req, token)
 
 	got := contextMap[req].token
 
-	if got != token {
+	if !bytes.Equal(token, decryptToken(b64decode(got))) {
 		t.Errorf("Token set incorrectly: expected %v, got %v", token, got)
 	}
 }
@@ -51,15 +52,16 @@ func TestGetsTokenCorrectly(t *testing.T) {
 	req := dummyGet()
 	token := Token(req)
 
-	if token != "" {
-		t.Errorf("Token hasn't been set yet, but it's not an empty string, it's %v", token)
+	if len(token) != 0 {
+		t.Errorf("Token hasn't been set yet, but it's not an empty slice, it's %v", token)
 	}
 
-	intended := "abcdef"
+	intended := []byte("12345678901234567890123456789012")
 	ctxSetToken(req, intended)
 
 	token = Token(req)
-	if token != "abcdef" {
+	decToken := decryptToken(b64decode(token))
+	if !bytes.Equal(intended, decToken) {
 		t.Errorf("Token has been set to %v, but it's %v", intended, token)
 	}
 }
@@ -73,7 +75,7 @@ func TestGetsReasonCorrectly(t *testing.T) {
 	}
 
 	// again, needed for ctxSetReason() to work
-	ctxSetToken(req, "dummy")
+	ctxSetToken(req, []byte("dummy"))
 
 	intended := errors.New("universe imploded")
 	ctxSetReason(req, intended)
@@ -87,7 +89,7 @@ func TestGetsReasonCorrectly(t *testing.T) {
 func TestClearsContextEntry(t *testing.T) {
 	req := dummyGet()
 
-	ctxSetToken(req, "dummy")
+	ctxSetToken(req, []byte("dummy"))
 	ctxSetReason(req, errors.New("some error"))
 
 	ctxClear(req)

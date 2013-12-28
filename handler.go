@@ -3,7 +3,6 @@
 package nosurf
 
 import (
-	"crypto/subtle"
 	"errors"
 	"net/http"
 	"net/url"
@@ -79,12 +78,13 @@ func New(handler http.Handler) *CSRFHandler {
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Vary", "Cookie")
 
+	var realToken []byte
+
 	token_cookie, err := r.Cookie(CookieName)
-	realToken := ""
 	if err == http.ErrNoCookie {
-		realToken = h.RegenerateToken(w, r)
+		h.RegenerateToken(w, r)
 	} else {
-		realToken = token_cookie.Value
+		realToken = b64decode(token_cookie.Value)
 	}
 
 	// If the length of the real token isn't what it should be,
@@ -96,12 +96,10 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// As a consequence, CSRF check will fail when comparing the tokens later on,
 	// so we don't have to fail it just yet.
 	if len(realToken) != tokenLength {
-		realToken = h.RegenerateToken(w, r)
+		h.RegenerateToken(w, r)
+	} else {
+		ctxSetToken(r, realToken)
 	}
-
-	// clear the context after the request is served
-	defer ctxClear(r)
-	ctxSetToken(r, realToken)
 
 	if sContains(safeMethods, r.Method) {
 		// short-circuit with a success for safe methods
@@ -139,23 +137,17 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Finally, we check the token itself.
 
 	// Prefer the header over form value
-	sentToken := r.Header.Get(HeaderName)
-	if sentToken == "" {
-		sentToken = r.PostFormValue(FormFieldName)
+	var sentToken []byte
+	sentToken = b64decode(r.Header.Get(HeaderName))
+	if len(sentToken) == 0 {
+		sentToken = b64decode(r.PostFormValue(FormFieldName))
 	}
 
-	// Oh god. ConstantTimeCompare only compares equal length slices correctly.
-	if len(sentToken) != len(realToken) {
+	equals := verifyToken(realToken, sentToken)
+	if !equals {
 		ctxSetReason(r, ErrBadToken)
 		h.handleFailure(w, r)
 		return
-	} else {
-		comparison := subtle.ConstantTimeCompare([]byte(sentToken), []byte(realToken))
-		if comparison != 1 {
-			ctxSetReason(r, ErrBadToken)
-			h.handleFailure(w, r)
-			return
-		}
 	}
 
 	// Everything else passed, handle the success.
@@ -180,17 +172,19 @@ func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) st
 	token := generateToken()
 	h.setTokenCookie(w, r, token)
 
-	return token
+	return Token(r)
 }
 
-func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, token string) {
+func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, token []byte) {
+	// ctxSetToken() does the encryption for us
+	ctxSetToken(r, token)
+
 	cookie := h.baseCookie
 	cookie.Name = CookieName
-	cookie.Value = token
+	cookie.Value = b64encode(token)
 
 	http.SetCookie(w, &cookie)
 
-	ctxSetToken(r, token)
 }
 
 // Sets the handler to call in case the CSRF check
