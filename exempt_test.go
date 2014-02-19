@@ -35,7 +35,7 @@ func TestExemptPaths(t *testing.T) {
 	other := "/accounts"
 
 	if hand.IsExempt(other) {
-		t.Errorf("%v is exempt, but it shouldn't be")
+		t.Errorf("%v is exempt, but it shouldn't be", other)
 	}
 }
 
@@ -81,13 +81,13 @@ func TestExemptGlobs(t *testing.T) {
 
 	for _, v := range matching {
 		if !hand.IsExempt(v) {
-			t.Error("%v should be exempt, but it isn't.")
+			t.Errorf("%v should be exempt, but it isn't.", v)
 		}
 	}
 
 	for _, v := range nonMatching {
 		if hand.IsExempt(v) {
-			t.Error("%v shouldn't be exempt, but it is")
+			t.Errorf("%v shouldn't be exempt, but it is", v)
 		}
 	}
 }
