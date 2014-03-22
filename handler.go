@@ -81,9 +81,7 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var realToken []byte
 
 	token_cookie, err := r.Cookie(CookieName)
-	if err == http.ErrNoCookie {
-		h.RegenerateToken(w, r)
-	} else {
+	if err == nil {
 		realToken = b64decode(token_cookie.Value)
 	}
 
