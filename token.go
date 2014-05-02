@@ -80,7 +80,7 @@ func verifyEncrypted(realToken, sentToken []byte) bool {
 	return subtle.ConstantTimeCompare(realToken, sentPlain) == 1
 }
 
-func init() {
+func checkForPRNG() {
 	// Check that cryptographically secure PRNG is available
 	// In case it's not, panic.
 	buf := make([]byte, 1)
@@ -89,4 +89,8 @@ func init() {
 	if err != nil {
 		panic(fmt.Sprintf("crypto/rand is unavailable: Read() failed with %#v", err))
 	}
+}
+
+func init() {
+	checkForPRNG()
 }

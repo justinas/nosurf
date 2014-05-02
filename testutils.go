@@ -1,11 +1,21 @@
 package nosurf
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 )
+
+// A reader that always fails on Read()
+// Suitable for testing the case of crypto/rand unavailability
+type failReader struct{}
+
+func (f failReader) Read(p []byte) (n int, err error) {
+	err = errors.New("dummy error")
+	return
+}
 
 func dummyGet() *http.Request {
 	req, err := http.NewRequest("GET", "http://dum.my/", nil)

@@ -1,8 +1,28 @@
 package nosurf
 
 import (
+	"crypto/rand"
 	"testing"
 )
+
+func TestChecksForPRNG(t *testing.T) {
+	// Monkeypatch crypto/rand with an always-failing reader
+	oldReader := rand.Reader
+	rand.Reader = failReader{}
+	// Restore it later for other tests
+	defer func() {
+		rand.Reader = oldReader
+	}()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Errorf("Expected checkForPRNG() to panic")
+		}
+	}()
+
+	checkForPRNG()
+}
 
 func TestGeneratesAValidToken(t *testing.T) {
 	// We can't test much with any certainity here,
