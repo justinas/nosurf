@@ -75,6 +75,11 @@ func New(handler http.Handler) *CSRFHandler {
 	return csrf
 }
 
+// The same as New(), but has an interface return type.
+func NewPure(handler http.Handler) http.Handler {
+	return New(handler)
+}
+
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Vary", "Cookie")
 
