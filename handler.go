@@ -85,9 +85,9 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var realToken []byte
 
-	token_cookie, err := r.Cookie(CookieName)
+	tokenCookie, err := r.Cookie(CookieName)
 	if err == nil {
-		realToken = b64decode(token_cookie.Value)
+		realToken = b64decode(tokenCookie.Value)
 	}
 
 	// If the length of the real token isn't what it should be,

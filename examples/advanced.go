@@ -8,12 +8,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/justinas/nosurf"
 	"html/template"
 	"net/http"
+
+	"github.com/justinas/nosurf"
 )
 
-var templateString string = `
+var templateString = `
 <!doctype html>
 <html>
 <body>

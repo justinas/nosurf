@@ -29,11 +29,11 @@ func TestRegenerateToken(t *testing.T) {
 	token := b64encode(decryptToken(b64decode(hand.RegenerateToken(writer, req))))
 
 	header := writer.Header().Get("Set-Cookie")
-	expected_part := fmt.Sprintf("csrf_token=%s;", token)
+	expectedPart := fmt.Sprintf("csrf_token=%s;", token)
 
-	if !strings.Contains(header, expected_part) {
+	if !strings.Contains(header, expectedPart) {
 		t.Errorf("Expected header to contain %v, it doesn't. The header is %v.",
-			expected_part, header)
+			expectedPart, header)
 	}
 
 }

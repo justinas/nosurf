@@ -4,13 +4,14 @@
 package main
 
 import (
-	"github.com/hoisie/web"
-	"github.com/justinas/nosurf"
 	"html/template"
 	"net/http"
+
+	"github.com/hoisie/web"
+	"github.com/justinas/nosurf"
 )
 
-var templateString string = `
+var templateString = `
 <!doctype html>
 <html>
 <body>
