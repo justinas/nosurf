@@ -1,5 +1,3 @@
-// +build !goci
-
 // Demonstrates the simplest usage of nosurf
 package main
 

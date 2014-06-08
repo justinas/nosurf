@@ -1,5 +1,3 @@
-// +build !goci
-
 // Demonstrates usage of nosurf with the web.go package
 package main
 
