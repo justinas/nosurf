@@ -17,6 +17,7 @@ nor should they.
 that wraps your `http.Handler` and checks for CSRF attacks
 on every non-safe (non-GET/HEAD/OPTIONS/TRACE) method.
 
+`nosurf` requires Go 1.1 or later.
 
 ### Features
 
