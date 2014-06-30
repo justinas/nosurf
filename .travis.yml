@@ -3,6 +3,9 @@ language: go
 install:
   - go get .
 
+script:
+  - go test -v .
+
 go:
   - 1.1
   - 1.2
