@@ -101,3 +101,13 @@ func TestClearsContextEntry(t *testing.T) {
 			" it should have been cleared.", entry, req)
 	}
 }
+
+func TestClearsContextEntryEvenIfNotSet(t *testing.T) {
+	r := dummyGet()
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("ctxClear(r) panicked with %v", r)
+		}
+	}()
+	ctxClear(r)
+}
