@@ -81,6 +81,11 @@ func NewPure(handler http.Handler) http.Handler {
 }
 
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.onHTTPRequest(w, r)
+	ctxClear(r)
+}
+
+func (h *CSRFHandler) onHTTPRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Vary", "Cookie")
 
 	var realToken []byte
