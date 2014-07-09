@@ -13,7 +13,7 @@ Go's web-related package infrastructure mostly consists of
 micro-frameworks that neither do implement CSRF checks,
 nor should they.
 
-`nosurf` solves this problem by proving a `CSRFHandler`
+`nosurf` solves this problem by providing a `CSRFHandler`
 that wraps your `http.Handler` and checks for CSRF attacks
 on every non-safe (non-GET/HEAD/OPTIONS/TRACE) method.
 
