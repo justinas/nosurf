@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
@@ -64,6 +65,22 @@ func main() {
 	signup.Use(nosurf.NewPure)
 	signup.Get("/signup/new", ShowSignupForm)
 	signup.Post("/signup/submit", SubmitSignupForm)
+
+	admin := web.New()
+	// A more advanced example: we enforce secure cookies (HTTPS only),
+	// set a domain and keep the expiry time low.
+	a := nosurf.New(admin)
+	a.SetBaseCookie(http.Cookie{
+		Name:     "csrf_token",
+		Domain:   "localhost",
+		Path:     "/admin",
+		MaxAge:   time.Now().Add(time.Hour * 4),
+		HttpOnly: true,
+		Secure:   true,
+	})
+
+	// Our /admin/* routes now have CSRF protection.
+	goji.Handle("/admin/*", a)
 
 	goji.Serve()
 }
