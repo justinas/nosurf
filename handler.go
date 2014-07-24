@@ -19,8 +19,8 @@ const (
 	// the HTTP status code for the default failure handler
 	FailureCode = 400
 
-	// Max-Age in seconds for the default base cookie. 365 days.
-	MaxAge = 365 * 24 * 60 * 60
+	// Max-Age in seconds for the default base cookie. 1 day.
+	MaxAge = 1 * 24 * 60 * 60
 )
 
 var safeMethods = []string{"GET", "HEAD", "OPTIONS", "TRACE"}
