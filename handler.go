@@ -180,7 +180,7 @@ func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) st
 }
 
 func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, token []byte) {
-	// ctxSetToken() does the encryption for us
+	// ctxSetToken() does the masking for us
 	ctxSetToken(r, token)
 
 	cookie := h.baseCookie

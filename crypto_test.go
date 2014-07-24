@@ -17,7 +17,7 @@ func TestOtpPanicsOnLengthMismatch(t *testing.T) {
 	}()
 	oneTimePad(data, key)
 }
-func TestOtpEncryptsCorrectly(t *testing.T) {
+func TestOtpMasksCorrectly(t *testing.T) {
 	data := []byte("Inventors of the shish-kebab")
 	key := []byte("They stop Cthulhu eating ye.")
 	// precalculated
@@ -27,12 +27,12 @@ func TestOtpEncryptsCorrectly(t *testing.T) {
 	oneTimePad(data, key)
 
 	if !bytes.Equal(data, expected) {
-		t.Errorf("oneTimePad encrypted the data incorrectly: expected %#v, got %#v",
+		t.Errorf("oneTimePad masked the data incorrectly: expected %#v, got %#v",
 			expected, data)
 	}
 }
 
-func TestOtpDecryptsCorrectly(t *testing.T) {
+func TestOtpUnmasksCorrectly(t *testing.T) {
 	orig := []byte("a very secret message")
 	data := make([]byte, len(orig))
 	copy(data, orig)
@@ -51,10 +51,10 @@ func TestOtpDecryptsCorrectly(t *testing.T) {
 	}
 }
 
-func TestEncryptsTokenCorrectly(t *testing.T) {
+func TestMasksTokenCorrectly(t *testing.T) {
 	// needs to be of tokenLength
 	token := []byte("12345678901234567890123456789012")
-	fullToken := encryptToken(token)
+	fullToken := maskToken(token)
 
 	if len(fullToken) != 2*tokenLength {
 		t.Errorf("len(fullToken) is not %d, but %d", 2*tokenLength, len(fullToken))
@@ -63,21 +63,21 @@ func TestEncryptsTokenCorrectly(t *testing.T) {
 	key := fullToken[:tokenLength]
 	encToken := fullToken[tokenLength:]
 
-	// perform decryption
+	// perform unmasking
 	oneTimePad(encToken, key)
 
 	if !bytes.Equal(encToken, token) {
-		t.Errorf("Decrypted token is invalid: expected %v, got %v", token, encToken)
+		t.Errorf("Unmasked token is invalid: expected %v, got %v", token, encToken)
 	}
 }
 
-func TestDecryptsTokenCorrectly(t *testing.T) {
+func TestUnmasksTokenCorrectly(t *testing.T) {
 	token := []byte("12345678901234567890123456789012")
-	fullToken := encryptToken(token)
+	fullToken := maskToken(token)
 
-	decToken := decryptToken(fullToken)
+	decToken := unmaskToken(fullToken)
 
 	if !bytes.Equal(decToken, token) {
-		t.Errorf("Decrypted token is invalid: expected %v, got %v", token, decToken)
+		t.Errorf("Unmasked token is invalid: expected %v, got %v", token, decToken)
 	}
 }
