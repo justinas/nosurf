@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"time"
 
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
@@ -74,7 +73,7 @@ func main() {
 		Name:     "csrf_token",
 		Domain:   "localhost",
 		Path:     "/admin",
-		MaxAge:   time.Now().Add(time.Hour * 4),
+		MaxAge:   3600 * 4,
 		HttpOnly: true,
 		Secure:   true,
 	})
