@@ -26,7 +26,7 @@ func TestRegenerateToken(t *testing.T) {
 	writer := httptest.NewRecorder()
 
 	req := dummyGet()
-	token := b64encode(decryptToken(b64decode(hand.RegenerateToken(writer, req))))
+	token := b64encode(unmaskToken(b64decode(hand.RegenerateToken(writer, req))))
 
 	header := writer.Header().Get("Set-Cookie")
 	expectedPart := fmt.Sprintf("csrf_token=%s;", token)
@@ -57,7 +57,7 @@ func TestsetTokenCookie(t *testing.T) {
 			expected_part, header)
 	}
 
-	tokenInContext := decryptToken(b64decode(Token(req)))
+	tokenInContext := unmaskToken(b64decode(Token(req)))
 	if !bytes.Equal(tokenInContext, token) {
 		t.Errorf("RegenerateToken didn't set the token in the context map!"+
 			" Expected %v, got %v", token, tokenInContext)
@@ -240,7 +240,7 @@ func TestCorrectTokenPasses(t *testing.T) {
 		t.Fatal("Cookie was not found in the response.")
 	}
 
-	finalToken := b64encode(encryptToken(b64decode(cookie.Value)))
+	finalToken := b64encode(maskToken(b64decode(cookie.Value)))
 
 	vals := [][]string{
 		{"name", "Jolene"},
@@ -288,7 +288,7 @@ func TestPrefersHeaderOverFormValue(t *testing.T) {
 		t.Fatal("Cookie was not found in the response.")
 	}
 
-	finalToken := b64encode(encryptToken(b64decode(cookie.Value)))
+	finalToken := b64encode(maskToken(b64decode(cookie.Value)))
 
 	vals := [][]string{
 		{"name", "Jolene"},

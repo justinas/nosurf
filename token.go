@@ -15,13 +15,13 @@ const (
 /*
 There are two types of tokens.
 
-* The unencrypted "real" token consists of 32 random bytes.
+* The unmasked "real" token consists of 32 random bytes.
   It is stored in a cookie (base64-encoded) and it's the
   "reference" value that sent tokens get compared to.
 
-* The encrypted "sent" token consists of 64 bytes:
-  32 byte key used for one-time pad encryption and
-  32 byte "real" token encrypted with the said key.
+* The masked "sent" token consists of 64 bytes:
+  32 byte key used for one-time pad masking and
+  32 byte "real" token masked with the said key.
   It is used as a value (base64-encoded as well)
   in forms and/or headers.
 
@@ -59,24 +59,24 @@ func b64decode(data string) []byte {
 
 // Verifies the sent token equals the real one
 // and returns a bool value indicating if tokens are equal.
-// Supports encrypted tokens.
+// Supports masked tokens.
 func verifyToken(realToken, sentToken []byte) bool {
 	realN := len(realToken)
 	sentN := len(sentToken)
 
-	// sentN == tokenLength means the token is unencrypted
-	// sentN == 2*tokenLength means the token is encrypted
+	// sentN == tokenLength means the token is unmasked
+	// sentN == 2*tokenLength means the token is masked.
 
 	if realN == tokenLength && sentN == 2*tokenLength {
-		return verifyEncrypted(realToken, sentToken)
+		return verifyMasked(realToken, sentToken)
 	} else {
 		return false
 	}
 }
 
-// Verifies the encrypted token
-func verifyEncrypted(realToken, sentToken []byte) bool {
-	sentPlain := decryptToken(sentToken)
+// Verifies the masked token
+func verifyMasked(realToken, sentToken []byte) bool {
+	sentPlain := unmaskToken(sentToken)
 	return subtle.ConstantTimeCompare(realToken, sentPlain) == 1
 }
 

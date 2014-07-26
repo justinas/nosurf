@@ -54,7 +54,7 @@ func TestVerifyTokenChecksLengthCorrectly(t *testing.T) {
 	}
 }
 
-func TestVerifiesEncryptedTokenCorrectly(t *testing.T) {
+func TestVerifiesMaskedTokenCorrectly(t *testing.T) {
 	realToken := []byte("qwertyuiopasdfghjklzxcvbnm123456")
 	sentToken := []byte("qwertyuiopasdfghjklzxcvbnm123456" +
 		"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" +
