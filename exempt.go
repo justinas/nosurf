@@ -2,15 +2,21 @@ package nosurf
 
 import (
 	"fmt"
+	"net/http"
 	pathModule "path"
 	"reflect"
 	"regexp"
 )
 
-// Checks if the given path is exempt from CSRF checks.
-// The function checks the exact paths first,
+// Checks if the given request is exempt from CSRF checks.
+// It checks the ExemptFunc first, then the exact paths,
 // then the globs and finally the regexps.
-func (h *CSRFHandler) IsExempt(path string) bool {
+func (h *CSRFHandler) IsExempt(r *http.Request) bool {
+	if h.exemptFunc != nil && h.exemptFunc(r) {
+		return true
+	}
+
+	path := r.URL.Path
 	if sContains(h.exemptPaths, path) {
 		return true
 	}
@@ -95,4 +101,8 @@ func (h *CSRFHandler) ExemptRegexps(res ...interface{}) {
 	for _, v := range res {
 		h.ExemptRegexp(v)
 	}
+}
+
+func (h *CSRFHandler) ExemptFunc(fn func(r *http.Request) bool) {
+	h.exemptFunc = fn
 }

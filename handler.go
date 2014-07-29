@@ -52,6 +52,8 @@ type CSRFHandler struct {
 	exemptRegexps []*regexp.Regexp
 	// ...or a glob (as used by path.Match()).
 	exemptGlobs []string
+	// ...or a custom matcher function
+	exemptFunc func(r *http.Request) bool
 
 	// All of those will be matched against Request.URL.Path,
 	// So they should take the leading slash into account
@@ -111,7 +113,7 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if h.IsExempt(r.URL.Path) {
+	if h.IsExempt(r) {
 		h.handleSuccess(w, r)
 		return
 	}
