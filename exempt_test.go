@@ -1,6 +1,7 @@
 package nosurf
 
 import (
+	"net/http"
 	"regexp"
 	"testing"
 )
@@ -9,15 +10,16 @@ func TestExemptPath(t *testing.T) {
 	// the handler doesn't matter here, let's use nil
 	hand := New(nil)
 	path := "/home"
+	exempt, _ := http.NewRequest("GET", path, nil)
 
 	hand.ExemptPath(path)
-	if !hand.IsExempt(path) {
-		t.Errorf("%v is not exempt, but it should be", path)
+	if !hand.IsExempt(exempt) {
+		t.Errorf("%v is not exempt, but it should be", exempt.URL.Path)
 	}
 
-	other := "/faq"
+	other, _ := http.NewRequest("GET", "/faq", nil)
 	if hand.IsExempt(other) {
-		t.Errorf("%v is exempt, but it shouldn't be", other)
+		t.Errorf("%v is exempt, but it shouldn't be", other.URL.Path)
 	}
 }
 
@@ -27,13 +29,13 @@ func TestExemptPaths(t *testing.T) {
 	hand.ExemptPaths(paths...)
 
 	for _, v := range paths {
-		if !hand.IsExempt(v) {
+		request, _ := http.NewRequest("GET", v, nil)
+		if !hand.IsExempt(request) {
 			t.Errorf("%v should be exempt, but it isn't", v)
 		}
 	}
 
-	other := "/accounts"
-
+	other, _ := http.NewRequest("GET", "/accounts", nil)
 	if hand.IsExempt(other) {
 		t.Errorf("%v is exempt, but it shouldn't be", other)
 	}
@@ -45,22 +47,22 @@ func TestExemptGlob(t *testing.T) {
 
 	hand.ExemptGlob(glob)
 
-	test := "/mail"
+	test, _ := http.NewRequest("GET", "/mail", nil)
 	if !hand.IsExempt(test) {
 		t.Errorf("%v should be exempt, but it isn't.", test)
 	}
 
-	test = "/nail"
+	test, _ = http.NewRequest("GET", "/nail", nil)
 	if !hand.IsExempt(test) {
 		t.Errorf("%v should be exempt, but it isn't.", test)
 	}
 
-	test = "/snail"
+	test, _ = http.NewRequest("GET", "/snail", nil)
 	if hand.IsExempt(test) {
 		t.Errorf("%v should not be exempt, but it is.", test)
 	}
 
-	test = "/mail/outbox"
+	test, _ = http.NewRequest("GET", "/mail/outbox", nil)
 	if hand.IsExempt(test) {
 		t.Errorf("%v should not be exempt, but it is.", test)
 	}
@@ -80,13 +82,15 @@ func TestExemptGlobs(t *testing.T) {
 	hand.ExemptGlobs(slice...)
 
 	for _, v := range matching {
-		if !hand.IsExempt(v) {
+		test, _ := http.NewRequest("GET", v, nil)
+		if !hand.IsExempt(test) {
 			t.Errorf("%v should be exempt, but it isn't.", v)
 		}
 	}
 
 	for _, v := range nonMatching {
-		if hand.IsExempt(v) {
+		test, _ := http.NewRequest("GET", v, nil)
+		if hand.IsExempt(test) {
 			t.Errorf("%v shouldn't be exempt, but it is", v)
 		}
 	}
@@ -191,23 +195,41 @@ func TestExemptRegexpMatching(t *testing.T) {
 	hand.ExemptRegexp(re)
 
 	// valid
-	test := "/mail"
+	test, _ := http.NewRequest("GET", "/mail", nil)
 	if !hand.IsExempt(test) {
 		t.Errorf("%v should be exempt, but it isn't.", test)
 	}
 
-	test = "/nail"
+	test, _ = http.NewRequest("GET", "/nail", nil)
 	if !hand.IsExempt(test) {
 		t.Errorf("%v should be exempt, but it isn't.", test)
 	}
 
-	test = "/mail/outbox"
+	test, _ = http.NewRequest("GET", "/mail/outbox", nil)
 	if hand.IsExempt(test) {
 		t.Errorf("%v shouldn't be exempt, but it is.", test)
 	}
 
-	test = "/snail"
+	test, _ = http.NewRequest("GET", "/snail", nil)
 	if hand.IsExempt(test) {
 		t.Errorf("%v shouldn't be exempt, but it is.", test)
+	}
+}
+
+func TestExemptFunc(t *testing.T) {
+	// the handler doesn't matter here, let's use nil
+	hand := New(nil)
+	hand.ExemptFunc(func(r *http.Request) bool {
+		return r.Method == "GET"
+	})
+
+	test, _ := http.NewRequest("GET", "/path", nil)
+	if !hand.IsExempt(test) {
+		t.Errorf("%v is not exempt, but it should be", test)
+	}
+
+	other, _ := http.NewRequest("POST", "/path", nil)
+	if hand.IsExempt(other) {
+		t.Errorf("%v is exempt, but it shouldn't be", other)
 	}
 }
