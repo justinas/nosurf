@@ -33,14 +33,10 @@ and then treated as 32/64 byte slices.
 // from crypto/rand
 func generateToken() []byte {
 	bytes := make([]byte, tokenLength)
-	_, _ = io.ReadFull(rand.Reader, bytes)
 
-	// I'm not sure how to handle the error from the above call.
-	// It shouldn't EVER really happen,
-	// as we check for the availablity of crypto/random
-	// in the init() function
-	// and both /dev/urandom and CryptGenRandom()
-	// should be inexhaustible.
+	if _, err := io.ReadFull(rand.Reader, bytes); err != nil {
+		panic(err)
+	}
 
 	return bytes
 }

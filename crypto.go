@@ -33,7 +33,9 @@ func maskToken(data []byte) []byte {
 	copy(token, data)
 
 	// generate the random token
-	io.ReadFull(rand.Reader, key)
+	if _, err := io.ReadFull(rand.Reader, key); err != nil {
+		panic(err)
+	}
 
 	oneTimePad(token, key)
 	return result
