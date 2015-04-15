@@ -63,6 +63,31 @@ func defaultFailureHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(FailureCode)
 }
 
+// Extracts the "sent" token from the request
+// and returns an unmasked version of it
+func extractToken(r *http.Request) []byte {
+	var sentToken string
+
+	// Prefer the header over form value
+	sentToken = r.Header.Get(HeaderName)
+
+	// Then POST values
+	if len(sentToken) == 0 {
+		sentToken = r.PostFormValue(FormFieldName)
+	}
+
+	// If all else fails, try a multipart value.
+	// PostFormValue() will already have called ParseMultipartForm()
+	if len(sentToken) == 0 && r.MultipartForm != nil {
+		vals := r.MultipartForm.Value[FormFieldName]
+		if len(vals) != 0 {
+			sentToken = vals[0]
+		}
+	}
+
+	return b64decode(sentToken)
+}
+
 // Constructs a new CSRFHandler that calls
 // the specified handler if the CSRF check succeeds.
 func New(handler http.Handler) *CSRFHandler {
@@ -141,13 +166,7 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Finally, we check the token itself.
-
-	// Prefer the header over form value
-	var sentToken []byte
-	sentToken = b64decode(r.Header.Get(HeaderName))
-	if len(sentToken) == 0 {
-		sentToken = b64decode(r.PostFormValue(FormFieldName))
-	}
+	sentToken := extractToken(r)
 
 	equals := verifyToken(realToken, sentToken)
 	if !equals {
