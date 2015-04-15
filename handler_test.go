@@ -3,6 +3,8 @@ package nosurf
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -247,22 +249,65 @@ func TestCorrectTokenPasses(t *testing.T) {
 		{FormFieldName, finalToken},
 	}
 
-	// Constructing a custom request is suffering
-	req, err := http.NewRequest("POST", server.URL, formBodyR(vals))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.AddCookie(cookie)
+	// Test usual POST
+	/*
+		{
+			req, err := http.NewRequest("POST", server.URL, formBodyR(vals))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.AddCookie(cookie)
 
-	resp, err = http.DefaultClient.Do(req)
+			resp, err = http.DefaultClient.Do(req)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.StatusCode != 200 {
-		t.Errorf("The request should have succeeded, but it didn't. Instead, the code was %d",
-			resp.StatusCode)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if resp.StatusCode != 200 {
+				t.Errorf("The request should have succeeded, but it didn't. Instead, the code was %d",
+					resp.StatusCode)
+			}
+		}
+	*/
+
+	// Test multipart
+	{
+		prd, pwr := io.Pipe()
+		wr := multipart.NewWriter(pwr)
+		go func() {
+
+			for _, v := range vals {
+				wr.WriteField(v[0], v[1])
+			}
+
+			err := wr.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = pwr.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}()
+
+		// Prepare a multipart request
+		req, err := http.NewRequest("POST", server.URL, prd)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req.Header.Add("Content-Type", wr.FormDataContentType())
+		req.AddCookie(cookie)
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.StatusCode != 200 {
+			t.Errorf("The request should have succeeded, but it didn't. Instead, the code was %d",
+				resp.StatusCode)
+		}
 	}
 }
 
