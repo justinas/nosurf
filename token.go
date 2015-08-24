@@ -53,10 +53,10 @@ func b64decode(data string) []byte {
 	return decoded
 }
 
-// Verifies the sent token equals the real one
+// VerifyToken verifies the sent token equals the real one
 // and returns a bool value indicating if tokens are equal.
 // Supports masked tokens.
-func verifyToken(realToken, sentToken []byte) bool {
+func VerifyToken(realToken, sentToken []byte) bool {
 	realN := len(realToken)
 	sentN := len(sentToken)
 
