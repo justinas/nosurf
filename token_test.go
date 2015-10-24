@@ -41,14 +41,14 @@ func TestGeneratesAValidToken(t *testing.T) {
 func TestVerifyTokenChecksLengthCorrectly(t *testing.T) {
 	for i := 0; i < 64; i++ {
 		slice := make([]byte, i)
-		result := VerifyToken(slice, slice)
+		result := verifyToken(slice, slice)
 		if result != false {
 			t.Errorf("VerifyToken should've returned false with slices of length %d", i)
 		}
 	}
 
 	slice := make([]byte, 64)
-	result := VerifyToken(slice[:32], slice)
+	result := verifyToken(slice[:32], slice)
 	if result != true {
 		t.Errorf("VerifyToken should've returned true on a zeroed slice of length 64")
 	}
@@ -60,13 +60,13 @@ func TestVerifiesMaskedTokenCorrectly(t *testing.T) {
 		"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" +
 		"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
 
-	if !VerifyToken(realToken, sentToken) {
+	if !verifyToken(realToken, sentToken) {
 		t.Errorf("VerifyToken returned a false negative")
 	}
 
 	realToken[0] = 'x'
 
-	if VerifyToken(realToken, sentToken) {
+	if verifyToken(realToken, sentToken) {
 		t.Errorf("VerifyToken returned a false positive")
 	}
 }
