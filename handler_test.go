@@ -112,6 +112,63 @@ func TestExemptedPass(t *testing.T) {
 	writer.Flush()
 }
 
+func TestManualVerify(t *testing.T) {
+	var keepToken string
+	hand := New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			if !VerifyToken(Token(r), keepToken) {
+				http.Error(w, "error", http.StatusBadRequest)
+			}
+		} else {
+			keepToken = Token(r)
+		}
+	}))
+	hand.ExemptPath("/")
+	hand.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("Test failed. Reason: %v", Reason(r))
+	}))
+
+	server := httptest.NewServer(hand)
+	defer server.Close()
+
+	// issue the first request to get the token
+	resp, err := http.Get(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cookie := getRespCookie(resp, CookieName)
+	if cookie == nil {
+		t.Fatal("Cookie was not found in the response.")
+	}
+
+	// finalToken := b64encode(maskToken(b64decode(cookie.Value)))
+
+	vals := [][]string{
+		{"name", "Jolene"},
+	}
+
+	// Test usual POST
+	{
+		req, err := http.NewRequest("POST", server.URL, formBodyR(vals))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.AddCookie(cookie)
+
+		resp, err = http.DefaultClient.Do(req)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.StatusCode != 200 {
+			t.Errorf("The request should have succeeded, but it didn't. Instead, the code was %d",
+				resp.StatusCode)
+		}
+	}
+}
+
 // Tests that the token/reason context is accessible
 // in the success/failure handlers
 func TestContextIsAccessible(t *testing.T) {
