@@ -122,10 +122,6 @@ func HandleJson(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### API Docs
-
-... are at [GoDoc](http://godoc.org/github.com/justinas/nosurf). No big surprise, right?
-
 ### Contributing
 
 0. Find an issue that bugs you / open a new one.
