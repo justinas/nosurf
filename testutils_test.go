@@ -40,7 +40,7 @@ func correctReason(t *testing.T, reason error) http.Handler {
 				" but it failed with the reason %#v", reason, got)
 		}
 		// Writes the default failure code
-		w.WriteHeader(FailureCode)
+		http.Error(w, "", FailureCode)
 	}
 
 	return http.HandlerFunc(fn)
