@@ -249,6 +249,13 @@ func TestNoTokenFails(t *testing.T) {
 		t.Errorf("The check should've failed with the code %d, but instead, it"+
 			" returned code %d", FailureCode, writer.Code)
 	}
+
+	expectedContentType := "text/plain; charset=utf-8"
+	actualContentType := writer.Header().Get("Content-Type")
+	if actualContentType != expectedContentType {
+		t.Errorf("The check should've failed with content type %s, but instead, it"+
+			" returned content type %s", expectedContentType, actualContentType)
+	}
 }
 
 func TestWrongTokenFails(t *testing.T) {
@@ -273,6 +280,13 @@ func TestWrongTokenFails(t *testing.T) {
 	if writer.Code != FailureCode {
 		t.Errorf("The check should've failed with the code %d, but instead, it"+
 			" returned code %d", FailureCode, writer.Code)
+	}
+
+	expectedContentType := "text/plain; charset=utf-8"
+	actualContentType := writer.Header().Get("Content-Type")
+	if actualContentType != expectedContentType {
+		t.Errorf("The check should've failed with content type %s, but instead, it"+
+			" returned content type %s", expectedContentType, actualContentType)
 	}
 }
 
