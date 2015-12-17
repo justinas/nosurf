@@ -29,7 +29,7 @@ an exact URL, a glob, or a regular expression.
 * Allows specifying your own failure handler. 
 Want to present the hacker with an ASCII middle finger
 instead of the plain old `HTTP 400`? No problem.
-* Uses masked tokens to mitigate the BREACH attack
+* Uses masked tokens to mitigate the BREACH attack.
 * Has no dependencies outside the Go standard library.
 
 ### Example
@@ -103,7 +103,7 @@ verification by using one of the exemption methods:
 	func (h *CSRFHandler) ExemptRegexps(res ...interface{})
 ```
 
-Later on, the token **must** be verify by manually getting a token from cookie
+Later on, the token **must** be verified by manually getting the token from the cookie
 and providing the token sent in body through: `VerifyToken(tkn, tkn2 string) bool`.
 
 Example:
@@ -113,9 +113,9 @@ func HandleJson(w http.ResponseWriter, r *http.Request) {
 		X,Y int
 		Tkn string
 	}{}
-	json.Unmarshal(ioutil.ReadALl(r.Body), &d)
+	json.Unmarshal(ioutil.ReadAll(r.Body), &d)
 	if !nosurf.VerifyToken(Token(r), d.Tkn) {
-		http.Errorf(w, "CSRF token wrong or incorrect", http.StatusBadRequest)
+		http.Errorf(w, "CSRF token incorrect", http.StatusBadRequest)
 		return
 	}
 	// do smth cool
