@@ -1,9 +1,7 @@
 package nosurf
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -21,49 +19,6 @@ func TestDefaultFailureHandler(t *testing.T) {
 	if writer.Code != FailureCode {
 		t.Errorf("Wrong status code for defaultFailure Handler: "+
 			"expected %d, got %d", FailureCode, writer.Code)
-	}
-}
-
-func TestRegenerateToken(t *testing.T) {
-	hand := New(nil)
-	writer := httptest.NewRecorder()
-
-	req := dummyGet()
-	token := b64encode(unmaskToken(b64decode(hand.RegenerateToken(writer, req))))
-
-	header := writer.Header().Get("Set-Cookie")
-	expectedPart := fmt.Sprintf("csrf_token=%s;", token)
-
-	if !strings.Contains(header, expectedPart) {
-		t.Errorf("Expected header to contain %v, it doesn't. The header is %v.",
-			expectedPart, header)
-	}
-
-}
-
-// Kind of a duplication of TestRegenerateToken,
-// but it's still good to test this too.
-func TestsetTokenCookie(t *testing.T) {
-	hand := New(nil)
-
-	writer := httptest.NewRecorder()
-	req := dummyGet()
-
-	token := []byte("dummy")
-	hand.setTokenCookie(writer, req, token)
-
-	header := writer.Header().Get("Set-Cookie")
-	expected_part := fmt.Sprintf("csrf_token=%s;", token)
-
-	if !strings.Contains(header, expected_part) {
-		t.Errorf("Expected header to contain %v, it doesn't. The header is %v.",
-			expected_part, header)
-	}
-
-	tokenInContext := unmaskToken(b64decode(Token(req)))
-	if !bytes.Equal(tokenInContext, token) {
-		t.Errorf("RegenerateToken didn't set the token in the context map!"+
-			" Expected %v, got %v", token, tokenInContext)
 	}
 }
 
