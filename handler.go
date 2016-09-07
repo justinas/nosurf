@@ -3,6 +3,7 @@
 package nosurf
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -108,7 +109,7 @@ func NewPure(handler http.Handler) http.Handler {
 }
 
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	defer ctxClear(r)
+	r = r.WithContext(context.WithValue(r.Context(), nosurfKey, &csrfContext{}))
 	w.Header().Add("Vary", "Cookie")
 
 	var realToken []byte
