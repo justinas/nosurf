@@ -90,6 +90,7 @@ func ctxSetReason(req *http.Request, reason error) *http.Request {
 	}
 
 	ctx.reason = reason
+	return req
 }
 
 func ctxClear(req *http.Request) {
