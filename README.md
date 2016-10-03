@@ -80,11 +80,6 @@ func main() {
 }
 ```
 
-More examples can be found in the 
-[examples/](https://github.com/justinas/nosurf/tree/master/examples/) directory.
-Feel free to add one for your favorite framework 
-or an unusual setup of the default HTTP tools.
-
 ### Manual token verification
 In some cases the CSRF token may be send through a non standard way,
 e.g. a body or request is a JSON encoded message with one of the fields
