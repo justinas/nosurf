@@ -118,11 +118,11 @@ func TestExemptRegexpCall(t *testing.T) {
 	re := regexp.MustCompile(pattern)
 	hand.ExemptRegexp(re)
 
-	got_re := hand.exemptRegexps[0]
+	gotRe := hand.exemptRegexps[0]
 
-	if re != got_re {
+	if re != gotRe {
 		t.Errorf("The compiled pattern is not what we gave: expected %v, got %v",
-			re, got_re)
+			re, gotRe)
 	}
 
 }

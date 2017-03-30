@@ -66,10 +66,8 @@ func defaultFailureHandler(w http.ResponseWriter, r *http.Request) {
 // Extracts the "sent" token from the request
 // and returns an unmasked version of it
 func extractToken(r *http.Request) []byte {
-	var sentToken string
-
 	// Prefer the header over form value
-	sentToken = r.Header.Get(HeaderName)
+	sentToken := r.Header.Get(HeaderName)
 
 	// Then POST values
 	if len(sentToken) == 0 {

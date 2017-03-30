@@ -42,14 +42,14 @@ func TestVerifyTokenChecksLengthCorrectly(t *testing.T) {
 	for i := 0; i < 64; i++ {
 		slice := make([]byte, i)
 		result := verifyToken(slice, slice)
-		if result != false {
+		if result {
 			t.Errorf("VerifyToken should've returned false with slices of length %d", i)
 		}
 	}
 
 	slice := make([]byte, 64)
 	result := verifyToken(slice[:32], slice)
-	if result != true {
+	if !result {
 		t.Errorf("VerifyToken should've returned true on a zeroed slice of length 64")
 	}
 }
