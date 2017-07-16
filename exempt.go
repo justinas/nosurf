@@ -49,9 +49,7 @@ func (h *CSRFHandler) ExemptPath(path string) {
 
 // A variadic argument version of ExemptPath()
 func (h *CSRFHandler) ExemptPaths(paths ...string) {
-	for _, v := range paths {
-		h.ExemptPath(v)
-	}
+	h.exemptPaths = append(h.exemptPaths, paths...)
 }
 
 // Exempts URLs that match the specified glob pattern
@@ -70,9 +68,7 @@ func (h *CSRFHandler) ExemptGlob(pattern string) {
 
 // A variadic argument version of ExemptGlob()
 func (h *CSRFHandler) ExemptGlobs(patterns ...string) {
-	for _, v := range patterns {
-		h.ExemptGlob(v)
-	}
+	h.exemptGlobs = append(h.exemptGlobs, patterns...)
 }
 
 // Accepts a regular expression string or a compiled *regexp.Regexp
