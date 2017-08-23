@@ -60,7 +60,7 @@ type CSRFHandler struct {
 }
 
 func defaultFailureHandler(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "", FailureCode)
+	http.Error(w, http.StatusText(FailureCode), FailureCode)
 }
 
 // Extracts the "sent" token from the request
