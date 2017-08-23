@@ -19,6 +19,13 @@ func TestDefaultFailureHandler(t *testing.T) {
 		t.Errorf("Wrong status code for defaultFailure Handler: "+
 			"expected %d, got %d", FailureCode, writer.Code)
 	}
+
+	expectedBody := http.StatusText(FailureCode) + "\n"
+	actualBody := writer.Body.String()
+	if actualBody != expectedBody {
+		t.Errorf("Wrong response body for defaultFailure Handler: "+
+			"expected %q, got %q", expectedBody, actualBody)
+	}
 }
 
 func TestSafeMethodsPass(t *testing.T) {
