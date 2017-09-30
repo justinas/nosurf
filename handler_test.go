@@ -99,7 +99,7 @@ func TestManualVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cookie := getRespCookie(resp, CookieName)
+	cookie := getRespCookie(resp, hand.cookieName)
 	if cookie == nil {
 		t.Fatal("Cookie was not found in the response.")
 	}
@@ -270,7 +270,7 @@ func TestCorrectTokenPasses(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cookie := getRespCookie(resp, CookieName)
+	cookie := getRespCookie(resp, hand.cookieName)
 	if cookie == nil {
 		t.Fatal("Cookie was not found in the response.")
 	}
@@ -361,7 +361,7 @@ func TestPrefersHeaderOverFormValue(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cookie := getRespCookie(resp, CookieName)
+	cookie := getRespCookie(resp, hand.cookieName)
 	if cookie == nil {
 		t.Fatal("Cookie was not found in the response.")
 	}

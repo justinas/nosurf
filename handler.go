@@ -10,8 +10,6 @@ import (
 )
 
 const (
-	// the name of CSRF cookie
-	CookieName = "csrf_token"
 	// the name of the form field
 	FormFieldName = "csrf_token"
 	// the name of CSRF header
@@ -38,6 +36,8 @@ type CSRFHandler struct {
 	// Handlers that CSRFHandler wraps.
 	successHandler http.Handler
 	failureHandler http.Handler
+
+	cookieName string
 
 	// The base cookie that CSRF cookies will be built upon.
 	// This should be a better solution of customizing the options
@@ -95,6 +95,7 @@ func New(handler http.Handler) *CSRFHandler {
 	csrf := &CSRFHandler{successHandler: handler,
 		failureHandler: http.HandlerFunc(defaultFailureHandler),
 		baseCookie:     baseCookie,
+		cookieName:     "csrf_token",
 	}
 
 	return csrf
@@ -112,7 +113,7 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var realToken []byte
 
-	tokenCookie, err := r.Cookie(CookieName)
+	tokenCookie, err := r.Cookie(h.cookieName)
 	if err == nil {
 		realToken = b64decode(tokenCookie.Value)
 	}
@@ -198,7 +199,7 @@ func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, tok
 	ctxSetToken(r, token)
 
 	cookie := h.baseCookie
-	cookie.Name = CookieName
+	cookie.Name = h.cookieName
 	cookie.Value = b64encode(token)
 
 	http.SetCookie(w, &cookie)
@@ -215,4 +216,9 @@ func (h *CSRFHandler) SetFailureHandler(handler http.Handler) {
 // This way you can specify the Domain, Path, HttpOnly, Secure, etc.
 func (h *CSRFHandler) SetBaseCookie(cookie http.Cookie) {
 	h.baseCookie = cookie
+}
+
+// Sets the name of the cookie
+func (h *CSRFHandler) SetCookieName(name string) {
+	h.cookieName = name
 }
