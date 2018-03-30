@@ -105,6 +105,14 @@ func NewPure(handler http.Handler) http.Handler {
 	return New(handler)
 }
 
+func (h CSRFHandler) getCookieName() string {
+	if h.baseCookie.Name != "" {
+		return h.baseCookie.Name
+	}
+
+	return CookieName
+}
+
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r = addNosurfContext(r)
 	defer ctxClear(r)
@@ -112,7 +120,7 @@ func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var realToken []byte
 
-	tokenCookie, err := r.Cookie(CookieName)
+	tokenCookie, err := r.Cookie(h.getCookieName())
 	if err == nil {
 		realToken = b64decode(tokenCookie.Value)
 	}
@@ -198,7 +206,7 @@ func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, tok
 	ctxSetToken(r, token)
 
 	cookie := h.baseCookie
-	cookie.Name = CookieName
+	cookie.Name = h.getCookieName()
 	cookie.Value = b64encode(token)
 
 	http.SetCookie(w, &cookie)
