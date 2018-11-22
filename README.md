@@ -109,7 +109,7 @@ func HandleJson(w http.ResponseWriter, r *http.Request) {
 		Tkn string
 	}{}
 	json.Unmarshal(ioutil.ReadAll(r.Body), &d)
-	if !nosurf.VerifyToken(Token(r), d.Tkn) {
+	if !nosurf.VerifyToken(nosurf.Token(r), d.Tkn) {
 		http.Errorf(w, "CSRF token incorrect", http.StatusBadRequest)
 		return
 	}
