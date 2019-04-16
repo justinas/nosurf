@@ -27,7 +27,10 @@ type csrfContext struct {
 // (that is, in another handler that wraps it,
 // or after the request has been served)
 func Token(req *http.Request) string {
-	ctx := req.Context().Value(nosurfKey).(*csrfContext)
+	ctx, ok := req.Context().Value(nosurfKey).(*csrfContext)
+	if !ok {
+		return ""
+	}
 
 	return ctx.token
 }
