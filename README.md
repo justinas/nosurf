@@ -80,6 +80,15 @@ func main() {
 }
 ```
 
+Example with [gin](https://github.com/gin-gonic/gin) that uses [gin-adapter](https://github.com/gwatts/gin-adapter):
+```
+func GetCSRFMiddleware() gin.HandlerFunc {
+	nextHandler, wrapper := adapter.New()
+	csrfHandler := nosurf.New(nextHandler)
+	return wrapper(csrfHandler)
+}
+```
+
 ### Manual token verification
 In some cases the CSRF token may be send through a non standard way,
 e.g. a body or request is a JSON encoded message with one of the fields
@@ -114,15 +123,6 @@ func HandleJson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// do smth cool
-}
-```
-
-Example with [gin](https://github.com/gin-gonic/gin) that uses [gin-adapter](https://github.com/gwatts/gin-adapter):
-```
-func GetCSRFMiddleware() gin.HandlerFunc {
-	nextHandler, wrapper := adapter.New()
-	csrfHandler := nosurf.New(nextHandler)
-	return wrapper(csrfHandler)
 }
 ```
 
