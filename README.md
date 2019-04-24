@@ -117,6 +117,15 @@ func HandleJson(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
+Example with [gin](https://github.com/gin-gonic/gin) that uses [gin-adapter](https://github.com/gwatts/gin-adapter):
+```
+func GetCSRFMiddleware() gin.HandlerFunc {
+	nextHandler, wrapper := adapter.New()
+	csrfHandler := nosurf.New(nextHandler)
+	return wrapper(csrfHandler)
+}
+```
+
 ### Contributing
 
 0. Find an issue that bugs you / open a new one.
