@@ -15,7 +15,7 @@ const (
 	// the name of the form field
 	FormFieldName = "csrf_token"
 	// the name of CSRF header
-	HeaderName = "X-CSRF-Token"
+	HeaderName = "x-csrf-token"
 	// the HTTP status code for the default failure handler
 	FailureCode = 400
 
