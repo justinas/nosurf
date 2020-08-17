@@ -58,15 +58,21 @@ func b64decode(data string) []byte {
 // Supports masked tokens. realToken comes from Token(r) and
 // sentToken is token sent unusual way.
 func VerifyToken(realToken, sentToken string) bool {
-	r := b64decode(realToken)
+	r, err := base64.StdEncoding.DecodeString(realToken)
+	if err != nil {
+		return false
+	}
 	if len(r) == 2*tokenLength {
 		r = unmaskToken(r)
 	}
-	s := b64decode(sentToken)
+	s, err := base64.StdEncoding.DecodeString(sentToken)
+	if err != nil {
+		return false
+	}
 	if len(s) == 2*tokenLength {
 		s = unmaskToken(s)
 	}
-	return subtle.ConstantTimeCompare(r, s) == 1
+	return subtle.ConstantTimeCompare(r, s) == 1 && len(r) > 0 && len(s) > 0
 }
 
 func verifyToken(realToken, sentToken []byte) bool {

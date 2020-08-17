@@ -70,3 +70,16 @@ func TestVerifiesMaskedTokenCorrectly(t *testing.T) {
 		t.Errorf("VerifyToken returned a false positive")
 	}
 }
+
+func TestVerifyTokenBase64Invalid(t *testing.T) {
+	for _, pairs := range [][]string{
+		{"foo", "bar"},
+		{"foo", ""},
+		{"", "bar"},
+		{"", ""},
+	} {
+		if VerifyToken(pairs[0], pairs[1]) {
+			t.Errorf("VerifyToken returned a false positive for: %v", pairs)
+		}
+	}
+}
