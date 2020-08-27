@@ -72,9 +72,10 @@ func VerifyToken(realToken, sentToken string) bool {
 	if len(s) == 2*tokenLength {
 		s = unmaskToken(s)
 	}
-	return subtle.ConstantTimeCompare(r, s) == 1 && len(r) > 0 && len(s) > 0
+	return tokensEqual(r, s)
 }
 
+// verifyToken expects the realToken to be unmasked and the sentToken to be masked
 func verifyToken(realToken, sentToken []byte) bool {
 	realN := len(realToken)
 	sentN := len(sentToken)
@@ -83,15 +84,16 @@ func verifyToken(realToken, sentToken []byte) bool {
 	// sentN == 2*tokenLength means the token is masked.
 
 	if realN == tokenLength && sentN == 2*tokenLength {
-		return verifyMasked(realToken, sentToken)
+		return tokensEqual(realToken, unmaskToken(sentToken))
 	}
 	return false
 }
 
-// Verifies the masked token
-func verifyMasked(realToken, sentToken []byte) bool {
-	sentPlain := unmaskToken(sentToken)
-	return subtle.ConstantTimeCompare(realToken, sentPlain) == 1
+// tokensEqual expects both tokens to be unmasked
+func tokensEqual(realToken, sentToken []byte) bool {
+	return len(realToken) == tokenLength &&
+		len(sentToken) == tokenLength &&
+		subtle.ConstantTimeCompare(realToken, sentToken) == 1
 }
 
 func checkForPRNG() {
