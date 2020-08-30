@@ -58,17 +58,24 @@ func b64decode(data string) []byte {
 // Supports masked tokens. realToken comes from Token(r) and
 // sentToken is token sent unusual way.
 func VerifyToken(realToken, sentToken string) bool {
-	r := b64decode(realToken)
+	r, err := base64.StdEncoding.DecodeString(realToken)
+	if err != nil {
+		return false
+	}
 	if len(r) == 2*tokenLength {
 		r = unmaskToken(r)
 	}
-	s := b64decode(sentToken)
+	s, err := base64.StdEncoding.DecodeString(sentToken)
+	if err != nil {
+		return false
+	}
 	if len(s) == 2*tokenLength {
 		s = unmaskToken(s)
 	}
-	return subtle.ConstantTimeCompare(r, s) == 1
+	return tokensEqual(r, s)
 }
 
+// verifyToken expects the realToken to be unmasked and the sentToken to be masked
 func verifyToken(realToken, sentToken []byte) bool {
 	realN := len(realToken)
 	sentN := len(sentToken)
@@ -77,15 +84,16 @@ func verifyToken(realToken, sentToken []byte) bool {
 	// sentN == 2*tokenLength means the token is masked.
 
 	if realN == tokenLength && sentN == 2*tokenLength {
-		return verifyMasked(realToken, sentToken)
+		return tokensEqual(realToken, unmaskToken(sentToken))
 	}
 	return false
 }
 
-// Verifies the masked token
-func verifyMasked(realToken, sentToken []byte) bool {
-	sentPlain := unmaskToken(sentToken)
-	return subtle.ConstantTimeCompare(realToken, sentPlain) == 1
+// tokensEqual expects both tokens to be unmasked
+func tokensEqual(realToken, sentToken []byte) bool {
+	return len(realToken) == tokenLength &&
+		len(sentToken) == tokenLength &&
+		subtle.ConstantTimeCompare(realToken, sentToken) == 1
 }
 
 func checkForPRNG() {

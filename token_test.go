@@ -2,6 +2,7 @@ package nosurf
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"testing"
 )
 
@@ -68,5 +69,62 @@ func TestVerifiesMaskedTokenCorrectly(t *testing.T) {
 
 	if verifyToken(realToken, sentToken) {
 		t.Errorf("VerifyToken returned a false positive")
+	}
+}
+
+func TestVerifyTokenBase64Invalid(t *testing.T) {
+	for _, pairs := range [][]string{
+		{"foo", "bar"},
+		{"foo", ""},
+		{"", "bar"},
+		{"", ""},
+	} {
+		if VerifyToken(pairs[0], pairs[1]) {
+			t.Errorf("VerifyToken returned a false positive for: %v", pairs)
+		}
+	}
+}
+
+func TestVerifyTokenUnMasked(t *testing.T) {
+	for i, tc := range []struct {
+		real  string
+		send  string
+		valid bool
+	}{
+		{
+			real:  "qwertyuiopasdfghjklzxcvbnm123456",
+			send:  "qwertyuiopasdfghjklzxcvbnm123456",
+			valid: true,
+		},
+		{
+			real: "qwertyuiopasdfghjklzxcvbnm123456",
+			send: "qwertyuiopasdfghjklzxcvbnm123456" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+			valid: true,
+		},
+		{
+			real: "qwertyuiopasdfghjklzxcvbnm123456" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+			send: "qwertyuiopasdfghjklzxcvbnm123456" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+			valid: true,
+		},
+		{
+			real: "qwertyuiopasdfghjklzxcvbnm123456" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" +
+				"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+			send:  "qwertyuiopasdfghjklzxcvbnm123456",
+			valid: true,
+		},
+	} {
+		if VerifyToken(
+			base64.StdEncoding.EncodeToString([]byte(tc.real)),
+			base64.StdEncoding.EncodeToString([]byte(tc.send)),
+		) != tc.valid {
+			t.Errorf("Verify token returned wrong result for case %d: %+v", i, tc)
+		}
 	}
 }
