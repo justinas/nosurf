@@ -195,6 +195,16 @@ func (h *CSRFHandler) handleFailure(w http.ResponseWriter, r *http.Request) {
 
 // Generates a new token, sets it on the given request and returns it
 func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) string {
+	if ctxWasSent(r) {
+		// The CSRF Cookie was set already by an earlier call to `RegenerateToken`
+		// in the same request context. It therefore does not make sense to regenerate
+		// it again as it will lead to two or more `Set-Cookie` instructions which will in turn
+		// cause CSRF to fail depending on the resulting order of the `Set-Cookie` instructions.
+		//
+		// No warning is necessary as the only caller to `setTokenCookie` is `RegenerateToken`.
+		return Token(r)
+	}
+
 	token := generateToken()
 	h.setTokenCookie(w, r, token)
 
@@ -210,6 +220,7 @@ func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, tok
 	cookie.Value = b64encode(token)
 
 	http.SetCookie(w, &cookie)
+	ctxSetSent(r)
 
 }
 
