@@ -9,6 +9,22 @@ import (
 	"testing"
 )
 
+func TestNoDoubleCookie(t *testing.T) {
+	var n *CSRFHandler
+	n = New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n.RegenerateToken(w, r)
+	}))
+
+	r := httptest.NewRequest("GET", "http://dummy.us", nil)
+	w := httptest.NewRecorder()
+
+	n.ServeHTTP(w, r)
+
+	if len(w.Result().Cookies()) > 1 {
+		t.Errorf("Expected one CSRF cookie, got %d", len(w.Result().Cookies()))
+	}
+}
+
 func TestDefaultFailureHandler(t *testing.T) {
 	writer := httptest.NewRecorder()
 	req := dummyGet()
