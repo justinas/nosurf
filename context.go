@@ -16,6 +16,12 @@ type csrfContext struct {
 	token string
 	// reason for the failure of CSRF check
 	reason error
+	// wasSent is true if `Set-Cookie` was called
+	// for the `name=csrf_token` already. This prevents
+	// duplicate `Set-Cookie: csrf_token` headers.
+	// For more information see:
+	// https://github.com/justinas/nosurf/pull/61
+	wasSent bool
 }
 
 // Token takes an HTTP request and returns
@@ -51,6 +57,17 @@ func ctxClear(_ *http.Request) {
 func ctxSetToken(req *http.Request, token []byte) {
 	ctx := req.Context().Value(nosurfKey).(*csrfContext)
 	ctx.token = b64encode(maskToken(token))
+}
+
+func ctxSetSent(req *http.Request) {
+	ctx := req.Context().Value(nosurfKey).(*csrfContext)
+	ctx.wasSent = true
+}
+
+func ctxWasSent(req *http.Request) bool {
+	ctx := req.Context().Value(nosurfKey).(*csrfContext)
+
+	return ctx.wasSent
 }
 
 func ctxSetReason(req *http.Request, reason error) {
