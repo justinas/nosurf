@@ -55,6 +55,9 @@ type CSRFHandler struct {
 	// ...or a custom matcher function
 	exemptFunc func(r *http.Request) bool
 
+	// Slices of paths that completely ignore this middleware.
+	ignorePaths []string
+
 	// All of those will be matched against Request.URL.Path,
 	// So they should take the leading slash into account
 }
@@ -116,6 +119,11 @@ func (h CSRFHandler) getCookieName() string {
 func (h *CSRFHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r = addNosurfContext(r)
 	defer ctxClear(r)
+	if h.IsIgnored(r) {
+		h.handleSuccess(w, r)
+		return
+	}
+
 	w.Header().Add("Vary", "Cookie")
 
 	var realToken []byte
@@ -203,10 +211,6 @@ func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) st
 		//
 		// No warning is necessary as the only caller to `setTokenCookie` is `RegenerateToken`.
 		return Token(r)
-	}
-
-	if h.IsExempt(r) {
-		return ""
 	}
 
 	token := generateToken()
