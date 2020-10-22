@@ -39,6 +39,10 @@ func (h *CSRFHandler) IsExempt(r *http.Request) bool {
 	return false
 }
 
+func (h *CSRFHandler) DisableForPath(path string) {
+	h.exemptPaths = append(h.exemptPaths, path)
+}
+
 // Exempts an exact path from CSRF checks
 // With this (and other Exempt* methods)
 // you should take note that Go's paths

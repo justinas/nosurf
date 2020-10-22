@@ -205,6 +205,10 @@ func (h *CSRFHandler) RegenerateToken(w http.ResponseWriter, r *http.Request) st
 		return Token(r)
 	}
 
+	if h.IsExempt(r) {
+		return ""
+	}
+
 	token := generateToken()
 	h.setTokenCookie(w, r, token)
 
