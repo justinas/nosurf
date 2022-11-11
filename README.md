@@ -8,6 +8,11 @@ that helps you prevent Cross-Site Request Forgery attacks.
 It acts like a middleware and therefore 
 is compatible with basically any Go HTTP application.
 
+### Install
+```bash
+go get github.com/justinas/nosurf
+```
+
 ### Why?
 Even though CSRF is a prominent vulnerability,
 Go's web-related package infrastructure mostly consists of
