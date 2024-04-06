@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	pathModule "path"
-	"reflect"
 	"regexp"
 )
 
@@ -79,13 +78,13 @@ func (h *CSRFHandler) ExemptGlobs(patterns ...string) {
 func (h *CSRFHandler) ExemptRegexp(re interface{}) {
 	var compiled *regexp.Regexp
 
-	switch re.(type) {
+	switch re := re.(type) {
 	case string:
-		compiled = regexp.MustCompile(re.(string))
+		compiled = regexp.MustCompile(re)
 	case *regexp.Regexp:
-		compiled = re.(*regexp.Regexp)
+		compiled = re
 	default:
-		err := fmt.Sprintf("%v isn't a valid type for ExemptRegexp()", reflect.TypeOf(re))
+		err := fmt.Errorf("%T is not a valid type for ExemptRegexp()", re)
 		panic(err)
 	}
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestsContains(t *testing.T) {
+func TestSContains(t *testing.T) {
 	slice := []string{"abc", "def", "ghi"}
 
 	s1 := "abc"
@@ -14,12 +14,12 @@ func TestsContains(t *testing.T) {
 	}
 
 	s2 := "xyz"
-	if !sContains(slice, s2) {
+	if sContains(slice, s2) {
 		t.Errorf("sContains said that %v contains %v, but it doesn't.", slice, s2)
 	}
 }
 
-func TestsameOrigin(t *testing.T) {
+func TestSameOrigin(t *testing.T) {
 	// a little helper that saves us time
 	p := func(rawurl string) *url.URL {
 		u, err := url.Parse(rawurl)

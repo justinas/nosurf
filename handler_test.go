@@ -334,16 +334,21 @@ func TestCorrectTokenPasses(t *testing.T) {
 		go func() {
 
 			for _, v := range vals {
-				wr.WriteField(v[0], v[1])
+				err := wr.WriteField(v[0], v[1])
+				if err != nil {
+					t.Error(err)
+					return
+				}
 			}
 
 			err := wr.Close()
 			if err != nil {
-				t.Fatal(err)
+				t.Error(err)
+				return
 			}
 			err = pwr.Close()
 			if err != nil {
-				t.Fatal(err)
+				t.Error(err)
 			}
 		}()
 
