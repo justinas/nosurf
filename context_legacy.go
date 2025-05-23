@@ -17,6 +17,12 @@ type csrfContext struct {
 	token string
 	// reason for the failure of CSRF check
 	reason error
+	// wasSent is true if `Set-Cookie` was called
+	// for the `name=csrf_token` already. This prevents
+	// duplicate `Set-Cookie: csrf_token` headers.
+	// For more information see:
+	// https://github.com/justinas/nosurf/pull/61
+	wasSent bool
 }
 
 var (
@@ -77,6 +83,32 @@ func ctxSetToken(req *http.Request, token []byte) *http.Request {
 	ctx.token = b64encode(maskToken(token))
 
 	return req
+}
+
+func ctxSetSent(req *http.Request) {
+	cmMutex.Lock()
+	defer cmMutex.Unlock()
+
+	ctx, ok := contextMap[req]
+	if !ok {
+		ctx = new(csrfContext)
+		contextMap[req] = ctx
+	}
+
+	ctx.wasSent = true
+}
+
+func ctxWasSent(req *http.Request) bool {
+	cmMutex.RLock()
+	defer cmMutex.RUnlock()
+
+	ctx, ok := contextMap[req]
+
+	if !ok {
+		return false
+	}
+
+	return ctx.wasSent
 }
 
 func ctxSetReason(req *http.Request, reason error) *http.Request {
