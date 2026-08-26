@@ -2,7 +2,10 @@
 
 package nosurf
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type ctxKey int
 
@@ -27,12 +30,23 @@ type csrfContext struct {
 // (that is, in another handler that wraps it,
 // or after the request has been served)
 func Token(req *http.Request) string {
-	ctx, ok := req.Context().Value(nosurfKey).(*csrfContext)
+	return TokenFromContext(req.Context())
+}
+
+// TokenFromContext takes a context and returns
+// the CSRF token stored in it
+// or an empty string if the token does not exist.
+//
+// This is handy when you only have the request's context
+// on hand and not the *http.Request itself. The same
+// availability restrictions apply as for Token().
+func TokenFromContext(ctx context.Context) string {
+	csrf, ok := ctx.Value(nosurfKey).(*csrfContext)
 	if !ok {
 		return ""
 	}
 
-	return ctx.token
+	return csrf.token
 }
 
 // Reason takes an HTTP request and returns
