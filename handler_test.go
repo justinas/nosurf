@@ -605,3 +605,32 @@ func TestAddsVaryCookieHeader(t *testing.T) {
 		t.Errorf("CSRFHandler didn't add a `Vary: Cookie` header.")
 	}
 }
+
+func TestRegenerateTokenReplacesCookieWhenMissing(t *testing.T) {
+	var got string
+	var hand *CSRFHandler
+	hand = New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got = hand.RegenerateToken(w, r)
+	}))
+
+	writer := httptest.NewRecorder()
+	hand.ServeHTTP(writer, dummyGet())
+
+	cookies := writer.Result().Cookies()
+	var csrf []*http.Cookie
+	for _, c := range cookies {
+		if c.Name == CookieName {
+			csrf = append(csrf, c)
+		}
+	}
+	if len(csrf) != 1 {
+		t.Fatalf("expected 1 %s cookie after RegenerateToken with no incoming cookie, got %d: %v",
+			CookieName, len(csrf), writer.Header()["Set-Cookie"])
+	}
+	if got == "" {
+		t.Fatal("RegenerateToken returned an empty token")
+	}
+	if TokenFromCookie := b64decode(csrf[0].Value); len(TokenFromCookie) != tokenLength {
+		t.Fatalf("cookie token has length %d, want %d", len(TokenFromCookie), tokenLength)
+	}
+}

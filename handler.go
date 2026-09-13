@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -269,8 +270,32 @@ func (h *CSRFHandler) setTokenCookie(w http.ResponseWriter, r *http.Request, tok
 	cookie.Name = h.getCookieName()
 	cookie.Value = b64encode(token)
 
+	// ServeHTTP regenerates a missing/invalid cookie, then handlers often call
+	// RegenerateToken again (login, etc.). http.SetCookie only appends, so the
+	// response would carry two csrf_token cookies and the browser may keep the
+	// first. Drop any prior Set-Cookie for this name so only the latest remains.
+	replaceSetCookie(w, cookie.Name)
 	http.SetCookie(w, &cookie)
+}
 
+func replaceSetCookie(w http.ResponseWriter, name string) {
+	header := w.Header()
+	cookies := header["Set-Cookie"]
+	if len(cookies) == 0 {
+		return
+	}
+	prefix := name + "="
+	kept := cookies[:0]
+	for _, c := range cookies {
+		if !strings.HasPrefix(c, prefix) {
+			kept = append(kept, c)
+		}
+	}
+	if len(kept) == 0 {
+		header.Del("Set-Cookie")
+		return
+	}
+	header["Set-Cookie"] = kept
 }
 
 // Sets the handler to call in case the CSRF check
